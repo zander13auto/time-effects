@@ -1,60 +1,30 @@
 # time-effects
 
-Two drop-in scroll-driven timeline effects, built to evoke a **century of progress**. Originally designed for the WordPress.com 100-Year Plan and 100-Year Domain landing pages.
+A small collection of standalone, dependency-free HTML files that turn page scroll into a sense of time passing. Drop one into any project, swap the CSS custom properties to match your brand, and replace the dataset.
 
-Both effects:
-
-- Are **self-contained** single HTML files — paste the `<style>` + markup + `<script>` into any page.
-- Use the visitor's **current year** as the starting point (`new Date().getFullYear()`) and span 100 years forward, automatically.
-- Are **position: fixed** and appended/placed outside any transformed/overflow ancestor so they survive aggressive theme CSS (tested inside WordPress block themes).
-- Have **no dependencies** — vanilla JS, no build step, no fonts required (Recoleta is preferred but falls back gracefully).
+**Live gallery:** [zander13auto.github.io/time-effects](https://zander13auto.github.io/time-effects/)
 
 ---
 
-## 🌿 Vert-timeline-scroll
+## What's in here
 
-A vertical century rail pinned to the **right edge** of the viewport. A glowing accent dot and a serif year readout (`YEAR / 47 / OF 2126`) slide down the rail as the visitor scrolls. Decade ticks are labelled with absolute years. Hides itself below 1200px viewport width.
+| # | Effect | File | Best for |
+|---|---|---|---|
+| 01 | Vertical Timeline Scroll | [`Vert-timeline-scroll.html`](./Vert-timeline-scroll.html) | Long-form pages where the destination is "the end of the century." |
+| 02 | Horizontal Timeline Scroll | [`Horiz-timeline-scroll.html`](./Horiz-timeline-scroll.html) | Hero-video pages and full-bleed layouts where a side rail would compete with content. |
+| 03 | Date Magnify Scroll | [`Date-magnify-scroll.html`](./Date-magnify-scroll.html) | Dense chronologies (days of a year, sprint days, life milestones) where each individual date matters. |
 
-**Best for:** long editorial pages where the rail acts as a quiet "you are here in the century" indicator next to the main content.
-
-📄 [`Vert-timeline-scroll.html`](./Vert-timeline-scroll.html)
-
----
-
-## ➖ Horiz-timeline-scroll
-
-A horizontal glass bar pinned to the **bottom** of the viewport. A centered serif year readout updates with scroll; a glowing dot and progress underline slide left → right across decade ticks labelled with absolute years.
-
-**Best for:** product / marketing pages where the rail acts as a persistent status bar across all content sections.
-
-📄 [`Horiz-timeline-scroll.html`](./Horiz-timeline-scroll.html)
+Each file is self-contained — open it directly in a browser, host it on GitHub Pages, or paste it into any HTML page.
 
 ---
 
-## 📦 How to use
+## 01 — Vertical Timeline Scroll
 
-1. Open the effect's HTML file and copy:
-   - The `<style id="vts-styles">` (or `hts-styles`) block — paste into `<head>`.
-   - For the horizontal effect: the `<div class="hts-rail">…</div>` markup — paste just before `</body>`.
-   - The `<script>` block — paste before `</body>`.
-2. Make sure the page is **tall enough to scroll** (otherwise the dot stays at 0%).
-3. That's it. The rail reads the current year on load and animates against `window.scrollY`.
+A fixed rail on the right edge of the viewport. As you scroll the page, a glowing gold dot moves down the rail, decade tick marks light up next to it, and a serif year readout (Y / Y+100) updates in real time. The rail hides on narrow viewports.
 
-### Customising the look
-
-Both effects expose CSS custom properties at `:root`:
-
-| Token            | Default                          | What it controls            |
-|------------------|----------------------------------|-----------------------------|
-| `--vts-accent` / `--hts-accent` | `#e8c08c` (warm gold) | Dot, ticks, readout colour |
-| `--vts-serif` / `--hts-serif`   | `Recoleta, …, serif`  | Year readout typeface       |
-| `--vts-sans` / `--hts-sans`     | `Inter, …, sans-serif`| Label typeface              |
-| `--hts-bg-tint`                 | `10, 13, 15` (RGB triple) | Bottom-bar glass colour |
-
-Override them in your own stylesheet:
+**Customisation tokens** (set on `:root`):
 
 ```css
-:root {
-  --hts-accent: #3858E9;          /* swap warm gold for WP blue */
-  --hts-serif: 'Playfair Display', serif;
-}
+--vts-accent : #e8c08c;   /* dot, ticks, year readout */
+--vts-serif  : 'Recoleta', 'Cormorant Garamond', serif;
+--vts-sans   : 'Inter', 'SF Pro Display', sans-serif;
