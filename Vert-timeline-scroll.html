@@ -168,9 +168,19 @@
   text-transform: uppercase !important;
   font-weight: 500 !important;
 }
-@media (max-width: 1200px) {
-  .vts-rail { display: none !important; }
+@media (max-width:1200px) and (min-width:769px) {
+  .hy-vrail { width:118px; right:12px; }
+  .hy-vrail .hy-vrail-track { right:26px; width:18px; top:14vh; bottom:14vh; }
+  .hy-vrail .hy-vrail-dot { width:10px; height:10px; box-shadow:0 0 0 4px rgba(232,192,140,0.16), 0 0 16px rgba(232,192,140,0.75); }
+  .hy-vrail .hy-vrail-tick.decade { width:10px; }
+  .hy-vrail .hy-vrail-tick.small { width:5px; }
+  .hy-vrail .hy-vrail-tick-label { left:18px; font-size:9px; letter-spacing:0.1em; }
+  .hy-vrail .hy-vrail-readout { right:42px; }
+  .hy-vrail .hy-vrail-readout .lbl { font-size:9px; margin-bottom:2px; letter-spacing:0.18em; }
+  .hy-vrail .hy-vrail-readout .num { font-size:38px; }
+  .hy-vrail .hy-vrail-readout .of { font-size:9px; margin-top:4px; }
 }
+@media (max-width:768px) { .hy-vrail { display:none; } }
 </style>
 </head>
 <body>
