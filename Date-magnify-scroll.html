@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Date Magnify Scroll · time-effects</title>
+<style>
+  :root {
+    --dms-bg:        #101517;
+    --dms-bg-deep:   #0a0d0f;
+    --dms-fg:        #ffffff;
+    --dms-fg-dim:    #dcdcde;
+    --dms-fg-mute:   #a7aaad;
+    --dms-accent:    #e8c08c;
+    --dms-serif:     'Recoleta','Cormorant Garamond','Times New Roman',serif;
+    --dms-sans:      'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--dms-bg);
+    color: var(--dms-fg);
+    font-family: var(--dms-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Intro / outro */
+  .dms-intro, .dms-outro {
+    min-height: 90vh;
+    display: flex; align-items: center; justify-content: flex-start;
+    text-align: left;
+    padding: 64px 32px 64px max(32px, 8vw);
+    max-width: 760px;
+  }
+  .dms-intro h1, .dms-outro h2 {
+    font-family: var(--dms-serif);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin: 0 0 24px;
+    font-size: clamp(40px, 6vw, 84px);
+    color: #fff;
+  }
+  .dms-intro h1 em, .dms-outro h2 em {
+    font-style: italic; color: var(--dms-accent); font-weight: 300;
+  }
+  .dms-intro p, .dms-outro p {
+    font-size: 18px; color: var(--dms-fg-dim);
+    max-width: 560px; margin: 0; line-height: 1.55;
+  }
+  .dms-eyebrow {
+    display: inline-block;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--dms-accent);
+    margin-bottom: 24px;
+  }
+
+  /* Right-anchored rail of dates */
+  .dms-stage {
+    position: relative;
+    width: 240px;
+    max-width: 240px;
+    margin: 0 0 0 auto;
+    padding: 50vh 90px 50vh 16px;
+  }
+  .dms-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 10px 0;
+    text-align: right;
+    transform-origin: right center;
+    will-change: transform, opacity;
+  }
+  .dms-item-date {
+    font-family: var(--dms-serif);
+    font-weight: 400;
+    font-size: 20px;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--dms-fg-mute);
+    font-feature-settings: 'tnum';
+    transition: color 0.25s ease, text-shadow 0.25s ease;
+    white-space: nowrap;
+  }
+  .dms-item-dow {
+    font-family: var(--dms-sans);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--dms-fg-mute);
+    opacity: 0.5;
+    transition: opacity 0.25s ease, color 0.25s ease;
+    white-space: nowrap;
+    min-width: 28px;
+    text-align: left;
+  }
+  .dms-item.is-focus .dms-item-date {
+    color: var(--dms-accent);
+    text-shadow: 0 0 32px rgba(232,192,140,0.45), 0 0 60px rgba(232,192,140,0.18);
+  }
+  .dms-item.is-focus .dms-item-dow { color: var(--dms-accent); opacity: 1; }
+
+  /* Vignette — fades the rail's top + bottom into the page bg so only ~1 date is fully visible at a time */
+  .dms-vignette {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    z-index: 7;
+    background: linear-gradient(to bottom,
+      var(--dms-bg) 0%,
+      var(--dms-bg) 30%,
+      rgba(16,21,23,0.85) 38%,
+      rgba(16,21,23,0) 48%,
+      rgba(16,21,23,0) 52%,
+      rgba(16,21,23,0.85) 62%,
+      var(--dms-bg) 70%,
+      var(--dms-bg) 100%);
+  }
+
+  /* Lens — short horizontal bar at viewport center, sitting over the rail */
+  .dms-lens {
+    position: fixed;
+    top: 50%; right: 80px;
+    width: 300px;
+    transform: translateY(-50%);
+    height: 1px;
+    pointer-events: none;
+    z-index: 9;
+    background: linear-gradient(90deg,
+      rgba(232,192,140,0) 0%,
+      rgba(232,192,140,0.55) 50%,
+      rgba(232,192,140,0) 100%);
+  }
+  .dms-lens::before, .dms-lens::after {
+    content: '';
+    position: absolute; top: 50%;
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--dms-accent);
+    box-shadow: 0 0 16px rgba(232,192,140,0.85);
+    transform: translateY(-50%);
+  }
+  .dms-lens::before { left: -8px; }
+  .dms-lens::after  { right: -8px; }
+
+  /* Big caption on the LEFT half of the viewport — clear of the right rail */
+  .dms-caption {
+    position: fixed;
+    top: 50%; left: max(24px, 6vw);
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 10;
+    transition: opacity 0.25s ease;
+    opacity: 0;
+    max-width: 46vw;
+  }
+  .dms-caption.is-on { opacity: 1; }
+  .dms-caption .lbl {
+    display: inline-block;
+    font-family: var(--dms-sans);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(232,192,140,0.7);
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .dms-caption .big {
+    display: block;
+    font-family: var(--dms-serif);
+    font-style: italic;
+    font-size: clamp(48px, 7vw, 96px);
+    color: #fff;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+  .dms-caption .sub {
+    display: block;
+    font-family: var(--dms-sans);
+    font-size: 14px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--dms-fg-dim);
+  }
+
+  footer.dms-foot {
+    background: #000;
+    padding: 48px 32px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--dms-fg-mute);
+    letter-spacing: 0.06em;
+    position: relative;
+    z-index: 11;
+  }
+  footer.dms-foot a { color: var(--dms-accent); text-decoration: none; }
+
+  @media (max-width: 720px) {
+    .dms-intro, .dms-outro { padding: 48px 16px 48px 24px; }
+    .dms-caption { left: 24px; max-width: 55vw; }
+    .dms-caption .big { font-size: clamp(36px, 9vw, 56px); }
+    .dms-stage { width: 160px; max-width: 160px; padding-right: 30px; }
+    .dms-lens { right: 24px; width: 180px; }
+    .dms-item-date { font-size: 16px; }
+    .dms-item-dow { font-size: 8px; min-width: 24px; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="dms-vignette" aria-hidden="true"></div>
+  <div class="dms-lens" aria-hidden="true"></div>
+
+  <div class="dms-caption" aria-live="polite">
+    <span class="lbl">In view</span>
+    <span class="big" id="dms-caption-big">&nbsp;</span>
+    <span class="sub" id="dms-caption-sub">&nbsp;</span>
+  </div>
+
+  <section class="dms-intro">
+    <div>
+      <span class="dms-eyebrow">Date Magnify Scroll</span>
+      <h1>A year, <em>one day at a time.</em></h1>
+      <p>Scroll down. Each day of the year drifts up the right-hand rail — magnifying as it reaches the lens, dissolving into the dark above and below. ↓</p>
+    </div>
+  </section>
+
+  <div class="dms-stage" id="dms-stage"></div>
+
+  <section class="dms-outro">
+    <div>
+      <span class="dms-eyebrow">End of the year</span>
+      <h2>365 days,<br><em>one scroll.</em></h2>
+      <p>Swap the dataset for any chronology — birthdays, sprint days, growing-season notes, anything daily.</p>
+    </div>
+  </section>
+
+  <footer class="dms-foot">
+    Part of the <a href="./index.html">time-effects</a> collection · Date Magnify Scroll
+  </footer>
+
+<script>
+(function(){
+
+  /* ============================================================
+     DATA — auto-built: every day of the current year.
+     Replace the loop below with your own array of:
+       { monShort, monLong, dayOrd, dowShort, dowLong }
+     to use any chronology (sprint days, milestones, birthdays).
+     ============================================================ */
+  var MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var MONTHS_LONG  = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var DAYS_LONG    = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var DAYS_SHORT   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  function ord(n){
+    var s = ['th','st','nd','rd'], v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  }
+
+  var YEAR = new Date().getFullYear();
+  var DATA = [];
+  var d = new Date(YEAR, 0, 1);
+  while (d.getFullYear() === YEAR){
+    DATA.push({
+      monShort: MONTHS_SHORT[d.getMonth()],
+      monLong:  MONTHS_LONG[d.getMonth()],
+      dayOrd:   ord(d.getDate()),
+      dowShort: DAYS_SHORT[d.getDay()],
+      dowLong:  DAYS_LONG[d.getDay()]
+    });
+    d.setDate(d.getDate() + 1);
+  }
+
+  /* ============================================================
+     TUNING
+     ============================================================ */
+  var FALLOFF     = 180;  // px — distance from lens where item returns to baseline
+  var SCALE_MAX   = 2.6;  // peak magnification at lens center
+  var SCALE_MIN   = 0.6;  // far-from-lens scale
+  var OPACITY_MIN = 0.0;  // far-from-lens opacity (0 = fully gone)
+  var FOCUS_BAND  = 20;   // px — within this distance the item gets .is-focus
+
+  /* ============================================================
+     RENDER
+     ============================================================ */
+  var stage = document.getElementById('dms-stage');
+  var frag  = document.createDocumentFragment();
+  for (var i = 0; i < DATA.length; i++){
+    var it  = DATA[i];
+    var row = document.createElement('div');
+    row.className = 'dms-item';
+    row.dataset.idx = i;
+    row.innerHTML =
+      '<span class="dms-item-dow">' + it.dowShort + '</span>' +
+      '<span class="dms-item-date">' + it.monShort + ' ' + it.dayOrd + '</span>';
+    frag.appendChild(row);
+  }
+  stage.appendChild(frag);
+
+  var items   = stage.querySelectorAll('.dms-item');
+  var caption = document.querySelector('.dms-caption');
+  var capBig  = document.getElementById('dms-caption-big');
+  var capSub  = document.getElementById('dms-caption-sub');
+
+  /* ============================================================
+     SCROLL LOOP
+     ============================================================ */
+  var ticking = false;
+  var lastFocusIdx = -1;
+  function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+
+  function update(){
+    ticking = false;
+    var vpCenter = window.innerHeight / 2;
+    var bestIdx  = -1, bestDist = Infinity;
+
+    for (var i = 0; i < items.length; i++){
+      var el   = items[i];
+      var rect = el.getBoundingClientRect();
+      var c    = rect.top + rect.height / 2;
+      var dist = Math.abs(c - vpCenter);
+
+      var prox = Math.max(0, 1 - dist / FALLOFF);
+      prox = easeOutCubic(prox);
+
+      var scale   = SCALE_MIN + (SCALE_MAX - SCALE_MIN) * prox;
+      var opacity = OPACITY_MIN + (1 - OPACITY_MIN) * prox;
+
+      el.style.transform = 'scale(' + scale.toFixed(3) + ')';
+      el.style.opacity   = opacity.toFixed(3);
+
+      if (dist < bestDist){ bestDist = dist; bestIdx = i; }
+    }
+
+    if (bestDist < FOCUS_BAND){
+      if (bestIdx !== lastFocusIdx){
+        if (lastFocusIdx >= 0) items[lastFocusIdx].classList.remove('is-focus');
+        items[bestIdx].classList.add('is-focus');
+        var it = DATA[bestIdx];
+        capBig.textContent = it.monLong + ' ' + it.dayOrd;
+        capSub.textContent = it.dowLong + ' · day ' + (bestIdx + 1) + ' of ' + DATA.length;
+        lastFocusIdx = bestIdx;
+      }
+      caption.classList.add('is-on');
+    } else {
+      if (lastFocusIdx >= 0){
+        items[lastFocusIdx].classList.remove('is-focus');
+        lastFocusIdx = -1;
+      }
+      caption.classList.remove('is-on');
+    }
+  }
+
+  function onScroll(){
+    if (!ticking){ window.requestAnimationFrame(update); ticking = true; }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', onScroll);
+  update();
+})();
+</script>
+</body>
+</html>
