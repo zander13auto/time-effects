@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horiz-timeline-scroll — Horizontal Century Rail</title>
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  Horiz-timeline-scroll                                           ║
+  ║  A fixed-position glass bar pinned to the bottom of the          ║
+  ║  viewport that tracks page scroll as a 100-year timeline.        ║
+  ║                                                                  ║
+  ║  • Left endpoint: Y (current year).                              ║
+  ║  • Right endpoint: Y + 100.                                      ║
+  ║  • Centered serif year readout updates with scroll.              ║
+  ║  • Glowing dot and progress underline slide left → right.        ║
+  ║  • Decade ticks (every 10%) get year labels; intra-decade        ║
+  ║    ticks every 5%. The intra-decade ticks drop out on mobile.    ║
+  ║                                                                  ║
+  ║  Drop-in usage:                                                  ║
+  ║    1. Copy the <style id="hts-styles"> block into <head>.        ║
+  ║    2. Copy the .hts-rail markup just before </body>.             ║
+  ║    3. Copy the <script> block.                                   ║
+  ║    4. Make sure the page is tall enough to scroll.               ║
+  ║                                                                  ║
+  ║  Tokens you may want to override:                                ║
+  ║    --hts-accent  (default #e8c08c, warm gold)                    ║
+  ║    --hts-bg-tint (default near-black, used in the glass)         ║
+  ║    --hts-serif   (default Recoleta → serif fallback chain)       ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+<style>
+  body {
+    margin: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #101517;
+    color: #fff;
+    line-height: 1.6;
+    padding-bottom: 180px; /* leave room for the rail */
+  }
+  .demo-section {
+    min-height: 100vh;
+    padding: 80px 32px;
+    max-width: 760px;
+    margin: 0 auto;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .demo-section h2 {
+    font-family: 'Recoleta','Cormorant Garamond', serif;
+    font-size: clamp(40px, 6vw, 72px);
+    margin: 0 0 24px;
+    color: #e8c08c;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+  }
+</style>
+
+<!-- ===== Horiz-timeline-scroll styles ===== -->
+<style id="hts-styles">
+:root {
+  --hts-accent: #e8c08c;
+  --hts-bg-tint: 10, 13, 15;
+  --hts-serif: 'Recoleta','Cormorant Garamond','Times New Roman', serif;
+  --hts-sans: 'Inter','SF Pro Display','Helvetica Neue', Arial, sans-serif;
+}
+.hts-rail {
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  z-index: 99999 !important;
+  pointer-events: none;
+  padding: 22px 40px 22px;
+  background: linear-gradient(180deg,
+    rgba(var(--hts-bg-tint), 0.55) 0%,
+    rgba(var(--hts-bg-tint), 0.92) 35%,
+    rgba(var(--hts-bg-tint), 0.98) 100%
+  ) !important;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(232,192,140,0.35) !important;
+  font-family: var(--hts-sans) !important;
+}
+.hts-rail * { box-sizing: border-box; }
+.hts-inner { max-width: 1400px; margin: 0 auto; }
+
+.hts-labels {
+  display: flex !important;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 16px;
+  gap: 24px;
+}
+.hts-end {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #a7aaad;
+  font-weight: 600;
+  line-height: 1.4;
+  flex: 0 0 auto;
+}
+.hts-end .yr {
+  color: var(--hts-accent) !important;
+  font-family: var(--hts-serif) !important;
+  font-size: 22px !important;
+  letter-spacing: 0;
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 400;
+}
+.hts-end small {
+  display: block;
+  font-size: 9px;
+  color: #6b7176;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+}
+.hts-end.right { text-align: right; }
+
+.hts-center { text-align: center; flex: 1 1 auto; }
+.hts-center .now {
+  font-family: var(--hts-serif) !important;
+  font-size: clamp(38px, 5vw, 60px) !important;
+  line-height: 1 !important;
+  color: var(--hts-accent) !important;
+  font-feature-settings: 'tnum';
+  letter-spacing: -0.02em;
+  display: block !important;
+  font-weight: 400;
+}
+.hts-center .hint {
+  display: block;
+  font-family: var(--hts-sans);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #a7aaad;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.hts-track { position: relative !important; height: 40px !important; }
+.hts-track .ln {
+  position: absolute; left: 0; right: 0; top: 50%;
+  transform: translateY(-50%);
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(232,192,140,0.55) 2%,
+    rgba(232,192,140,0.55) 98%,
+    transparent 100%
+  );
+}
+.hts-track .pg {
+  position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%);
+  height: 2px;
+  background: var(--hts-accent);
+  box-shadow: 0 0 14px rgba(232,192,140,0.85);
+  width: 0%;
+  transition: width 0.12s linear;
+}
+.hts-track .dot {
+  position: absolute; left: 0%; top: 50%;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--hts-accent);
+  box-shadow:
+    0 0 0 5px rgba(232,192,140,0.18),
+    0 0 22px rgba(232,192,140,0.95);
+  transform: translate(-50%, -50%);
+  transition: left 0.12s linear;
+}
+.hts-tick {
+  position: absolute !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+}
+.hts-tick .bar {
+  width: 1px; height: 8px;
+  background: rgba(232,192,140,0.5);
+  margin: 0 auto;
+}
+.hts-tick.dec .bar {
+  height: 20px;
+  background: var(--hts-accent);
+  opacity: 0.95;
+}
+.hts-tick .yr {
+  position: absolute;
+  top: 14px; left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--hts-sans);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--hts-accent);
+  font-weight: 700;
+  font-feature-settings: 'tnum';
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+@media (max-width: 880px) {
+  .hts-rail { padding: 14px 18px 16px; }
+  .hts-labels { margin-bottom: 10px; gap: 12px; }
+  .hts-end { font-size: 9px; letter-spacing: 0.15em; }
+  .hts-end .yr { font-size: 16px !important; }
+  .hts-center .now { font-size: 28px !important; }
+  .hts-center .hint { font-size: 9px; }
+  .hts-tick:not(.dec) { display: none; }
+  .hts-tick .yr { font-size: 9px; }
+  .hts-track { height: 30px !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Demo content. Delete in production. -->
+<div class="demo-section"><h2>Scroll down.</h2><p>The horizontal rail pinned at the bottom of your viewport tracks your scroll position from this year forward by a century.</p></div>
+<div class="demo-section"><h2>Year 25.</h2><p>Centered year readout, glowing accent dot, animated progress underline.</p></div>
+<div class="demo-section"><h2>Year 50.</h2><p>Decade ticks are labelled with their absolute year.</p></div>
+<div class="demo-section"><h2>Year 75.</h2><p>Glass treatment uses backdrop-filter blur for legibility over any content.</p></div>
+<div class="demo-section"><h2>Year 100.</h2><p>End of the line.</p></div>
+
+<!-- ===== Horiz-timeline-scroll rail (static markup; JS only animates) ===== -->
+<div class="hts-rail" aria-hidden="true">
+  <div class="hts-inner">
+    <div class="hts-labels">
+      <div class="hts-end left">
+        <span class="yr hts-y-start">2026</span>
+        <small>Start</small>
+      </div>
+      <div class="hts-center">
+        <span class="now hts-now">2026</span>
+        <span class="hint">You are here</span>
+      </div>
+      <div class="hts-end right">
+        <span class="yr hts-y-end">2126</span>
+        <small>+100 years</small>
+      </div>
+    </div>
+    <div class="hts-track">
+      <div class="ln"></div>
+      <div class="pg hts-pg"></div>
+      <!-- Ticks: every 5%, decade ticks every 10% get a year label. -->
+      <div class="hts-tick dec" style="left:0%"><div class="bar"></div><div class="yr hts-y0">2026</div></div>
+      <div class="hts-tick" style="left:5%"><div class="bar"></div></div>
+      <div class="hts-tick dec" style="left:10%"><div class="bar"></div><div class="yr hts-y10">2036</div></div>
+      <div class="hts-tick" style="left:15%"><div class="bar"></div></div>
+      <div class="hts-tick dec" style="left:20%"><div class="bar"></div><div class="yr hts-y20">2046</div></div>
+      <div class="hts-tick" style="left:25%"><div class="bar"></div></div>
+      <div class="hts-tick dec" style="left:30%"><div class="bar"></div><div class="yr hts-y30">2056</div></div>
+      <div class="hts-tick" style="left:35%"><div class="bar"></div></div>
+      <div class="hts-tick dec" style="left:40%"><div class="bar"></div><div class="yr hts-y40">2066</div></div>
+      <div class="hts-tick" style="left:45%"><div class="bar"></div></div>
+      <div class="hts-tick dec" style="left:50%"><div class="bar"></div><div class="yr hts-y50">2076</div></div>
+      <div class="hts-tick" style="left:55%"><div class="bar"></div></div>
+      <div class="hts-tick dec" style="left:60%"><div class="bar"></div><div class="yr hts-y60">2086</div></div>
+      <div class="hts-tick" style="left:65%"><div class="bar"></div></div>
+      <div class="hts-tick dec" style="left:70%"><div class="bar"></div><div class="yr hts-y70">2096</div></div>
+      <div class="hts-tick" style="left:75%"><div class="bar"></div></div>
+      <div class="hts-tick dec" style="left:80%"><div class="bar"></div><div class="yr hts-y80">2106</div></div>
+      <div class="hts-tick" style="left:85%"><div class="bar"></div></div>
+      <div class="hts-tick dec" style="left:90%"><div class="bar"></div><div class="yr hts-y90">2116</div></div>
+      <div class="hts-tick" style="left:95%"><div class="bar"></div></div>
+      <div class="hts-tick dec" style="left:100%"><div class="bar"></div><div class="yr hts-y100">2126</div></div>
+      <div class="dot hts-dot"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Horiz-timeline-scroll script (only animates dot / progress / year) ===== -->
+<script>
+(function () {
+  var Y  = new Date().getFullYear();
+  var Yp = Y + 100;
+
+  var qs = function (sel) { return document.querySelector(sel); };
+  var setText = function (sel, val) { var el = qs(sel); if (el) el.textContent = val; };
+
+  // Rewrite the hardcoded 2026/2126 placeholders with the real current year.
+  setText('.hts-y-start', Y);
+  setText('.hts-y-end',   Yp);
+  setText('.hts-now',     Y);
+  for (var k = 0; k <= 100; k += 10) setText('.hts-y' + k, Y + k);
+
+  var dot = qs('.hts-dot');
+  var pg  = qs('.hts-pg');
+  var now = qs('.hts-now');
+
+  function update() {
+    var d = document.documentElement;
+    var max = (d.scrollHeight - d.clientHeight) || 1;
+    var p = Math.min(1, Math.max(0, (window.scrollY || d.scrollTop) / max));
+    var pct = (p * 100).toFixed(3);
+    if (dot) dot.style.left = pct + '%';
+    if (pg)  pg.style.width = pct + '%';
+    if (now) now.textContent = Y + Math.round(p * 100);
+  }
+
+  window.addEventListener('scroll', update, { passive: true });
+  window.addEventListener('resize', update);
+  update();
+})();
+</script>
+</body>
+</html>
