@@ -1,249 +1,325 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vert-timeline-scroll — Vertical Century Rail</title>
-<!--
-  ╔══════════════════════════════════════════════════════════════════╗
-  ║  Vert-timeline-scroll                                            ║
-  ║  A fixed-position vertical rail that lives on the right edge of  ║
-  ║  the viewport and tracks page scroll as a 100-year timeline.     ║
-  ║                                                                  ║
-  ║  • Spans Y (current year) → Y + 100 automatically.               ║
-  ║  • Decade ticks (every 10%) get year labels.                     ║
-  ║  • A glowing dot + serif year readout follow scroll position.    ║
-  ║  • Appended to <body> via JS so it escapes any transformed or    ║
-  ║    overflow-hidden ancestor (works in WP block themes).          ║
-  ║  • Hides itself under 1200px viewport width.                     ║
-  ║                                                                  ║
-  ║  Drop-in usage:                                                  ║
-  ║    1. Copy the <style id="vts-styles"> block into your <head>.   ║
-  ║    2. Copy the <script> block before </body>.                    ║
-  ║    3. Make sure the page is tall enough to scroll.               ║
-  ║                                                                  ║
-  ║  Tokens you may want to override:                                ║
-  ║    --vts-accent  (default #e8c08c, warm gold)                    ║
-  ║    --vts-serif   (default Recoleta → serif fallback chain)       ║
-  ╚══════════════════════════════════════════════════════════════════╝
--->
+<title>Vertical Timeline Scroll · time-effects</title>
 <style>
-  body {
-    margin: 0;
-    font-family: 'Inter', system-ui, sans-serif;
-    background: #101517;
-    color: #fff;
-    line-height: 1.6;
+  :root {
+    --vts-bg:      #101517;
+    --vts-bg-deep: #0a0d0f;
+    --vts-fg:      #ffffff;
+    --vts-fg-dim:  #dcdcde;
+    --vts-fg-mute: #a7aaad;
+    --vts-accent:  #e8c08c;
+    --vts-serif:   'Recoleta','Cormorant Garamond','Times New Roman',serif;
+    --vts-sans:    'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif;
   }
-  .demo-section {
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--vts-bg);
+    color: var(--vts-fg);
+    font-family: var(--vts-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* Filler sections so there's something to scroll past */
+  .vts-section {
     min-height: 100vh;
-    padding: 80px 32px;
-    max-width: 760px;
-    margin: 0 auto;
-    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 80px 32px 80px max(32px, 8vw);
+    max-width: 900px;
   }
-  .demo-section h2 {
-    font-family: 'Recoleta','Cormorant Garamond', serif;
-    font-size: clamp(40px, 6vw, 72px);
-    margin: 0 0 24px;
-    color: #e8c08c;
+  .vts-section h1, .vts-section h2 {
+    font-family: var(--vts-serif);
     font-weight: 400;
     letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin: 0 0 24px;
+    font-size: clamp(40px, 6vw, 84px);
+    color: #fff;
   }
-</style>
+  .vts-section h1 em, .vts-section h2 em {
+    font-style: italic; color: var(--vts-accent); font-weight: 300;
+  }
+  .vts-section p {
+    font-size: 18px;
+    color: var(--vts-fg-dim);
+    max-width: 620px;
+    margin: 0;
+    line-height: 1.6;
+  }
+  .vts-eyebrow {
+    display: inline-block;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vts-accent);
+    margin-bottom: 24px;
+  }
 
-<!-- ===== Vert-timeline-scroll styles ===== -->
-<style id="vts-styles">
-:root {
-  --vts-accent: #e8c08c;
-  --vts-serif: 'Recoleta','Cormorant Garamond','Times New Roman', serif;
-  --vts-sans: 'Inter','SF Pro Display','Helvetica Neue', Arial, sans-serif;
-}
-.vts-rail {
-  position: fixed !important;
-  top: 0 !important;
-  right: 32px !important;
-  height: 100vh !important;
-  width: 170px !important;
-  z-index: 9999 !important;
-  pointer-events: none !important;
-  opacity: 0;
-  transition: opacity 0.5s ease;
-  font-family: var(--vts-sans) !important;
-}
-.vts-rail.visible { opacity: 1; }
-.vts-rail * { box-sizing: border-box !important; }
-.vts-track {
-  position: absolute !important;
-  top: 12vh !important;
-  bottom: 12vh !important;
-  right: 40px !important;
-  width: 24px !important;
-}
-.vts-line {
-  position: absolute !important;
-  top: 0 !important;
-  bottom: 0 !important;
-  left: 50% !important;
-  width: 1px !important;
-  transform: translateX(-50%) !important;
-  background: linear-gradient(180deg,
-    transparent 0%,
-    rgba(232,192,140,0.45) 5%,
-    rgba(232,192,140,0.45) 95%,
-    transparent 100%
-  ) !important;
-}
-.vts-tick {
-  position: absolute !important;
-  left: 50% !important;
-  height: 1px !important;
-  background: rgba(232,192,140,0.35) !important;
-  transform: translate(-50%, -50%) !important;
-}
-.vts-tick.small  { width: 6px !important; }
-.vts-tick.decade {
-  width: 14px !important;
-  background: rgba(232,192,140,0.85) !important;
-}
-.vts-tick-label {
-  position: absolute !important;
-  left: 24px !important;
-  transform: translateY(-50%) !important;
-  font-size: 10px !important;
-  letter-spacing: 0.14em !important;
-  color: rgba(232,192,140,0.55) !important;
-  font-weight: 600 !important;
-  font-feature-settings: 'tnum' !important;
-  white-space: nowrap !important;
-  text-transform: uppercase !important;
-  line-height: 1 !important;
-}
-.vts-dot {
-  position: absolute !important;
-  left: 50% !important;
-  width: 13px !important;
-  height: 13px !important;
-  border-radius: 50% !important;
-  background: var(--vts-accent) !important;
-  box-shadow:
-    0 0 0 5px rgba(232,192,140,0.18),
-    0 0 22px rgba(232,192,140,0.85) !important;
-  transform: translate(-50%, -50%) !important;
-  transition: top 0.18s ease-out !important;
-}
-.vts-readout {
-  position: absolute !important;
-  right: 64px !important;
-  text-align: right !important;
-  transform: translateY(-50%) !important;
-  transition: top 0.18s ease-out !important;
-  white-space: nowrap !important;
-}
-.vts-readout .lbl {
-  display: block !important;
-  font-size: 10px !important;
-  letter-spacing: 0.22em !important;
-  text-transform: uppercase !important;
-  color: rgba(232,192,140,0.7) !important;
-  margin-bottom: 4px !important;
-  font-weight: 600 !important;
-}
-.vts-readout .num {
-  display: block !important;
-  font-family: var(--vts-serif) !important;
-  font-size: 54px !important;
-  line-height: 1 !important;
-  color: var(--vts-accent) !important;
-  letter-spacing: -0.02em !important;
-  font-feature-settings: 'tnum' !important;
-  font-weight: 400 !important;
-}
-.vts-readout .of {
-  display: block !important;
-  font-size: 10px !important;
-  color: rgba(232,192,140,0.55) !important;
-  letter-spacing: 0.18em !important;
-  margin-top: 6px !important;
-  text-transform: uppercase !important;
-  font-weight: 500 !important;
-}
-@media (max-width:1200px) and (min-width:769px) {
-  .hy-vrail { width:118px; right:12px; }
-  .hy-vrail .hy-vrail-track { right:26px; width:18px; top:14vh; bottom:14vh; }
-  .hy-vrail .hy-vrail-dot { width:10px; height:10px; box-shadow:0 0 0 4px rgba(232,192,140,0.16), 0 0 16px rgba(232,192,140,0.75); }
-  .hy-vrail .hy-vrail-tick.decade { width:10px; }
-  .hy-vrail .hy-vrail-tick.small { width:5px; }
-  .hy-vrail .hy-vrail-tick-label { left:18px; font-size:9px; letter-spacing:0.1em; }
-  .hy-vrail .hy-vrail-readout { right:42px; }
-  .hy-vrail .hy-vrail-readout .lbl { font-size:9px; margin-bottom:2px; letter-spacing:0.18em; }
-  .hy-vrail .hy-vrail-readout .num { font-size:38px; }
-  .hy-vrail .hy-vrail-readout .of { font-size:9px; margin-top:4px; }
-}
-@media (max-width:768px) { .hy-vrail { display:none; } }
+  /* === The vertical rail === */
+  .vts-rail {
+    position: fixed;
+    top: 0; right: 32px;
+    height: 100vh;
+    width: 170px;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    font-family: var(--vts-sans);
+  }
+  .vts-rail.visible { opacity: 1; }
+
+  .vts-rail-track {
+    position: absolute;
+    top: 12vh; bottom: 12vh;
+    right: 40px;
+    width: 24px;
+  }
+  .vts-rail-line {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 50%;
+    width: 1px;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg,
+      transparent 0%,
+      rgba(232,192,140,0.45) 5%,
+      rgba(232,192,140,0.45) 95%,
+      transparent 100%);
+  }
+  .vts-rail-tick {
+    position: absolute;
+    left: 50%;
+    height: 1px;
+    background: rgba(232,192,140,0.35);
+    transform: translate(-50%, -50%);
+  }
+  .vts-rail-tick.small  { width: 6px; }
+  .vts-rail-tick.decade { width: 14px; background: rgba(232,192,140,0.85); }
+
+  .vts-rail-tick-label {
+    position: absolute;
+    left: 24px;
+    transform: translateY(-50%);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: rgba(232,192,140,0.55);
+    font-weight: 600;
+    font-feature-settings: 'tnum';
+    white-space: nowrap;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .vts-rail-dot {
+    position: absolute;
+    left: 50%;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: var(--vts-accent);
+    box-shadow:
+      0 0 0 5px rgba(232,192,140,0.18),
+      0 0 22px rgba(232,192,140,0.85);
+    transform: translate(-50%, -50%);
+    transition: top 0.18s ease-out;
+  }
+
+  .vts-rail-readout {
+    position: absolute;
+    right: 64px;
+    text-align: right;
+    transform: translateY(-50%);
+    transition: top 0.18s ease-out;
+    white-space: nowrap;
+  }
+  .vts-rail-readout .lbl {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(232,192,140,0.7);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .vts-rail-readout .num {
+    display: block;
+    font-family: var(--vts-serif);
+    font-size: 54px;
+    line-height: 1;
+    color: var(--vts-accent);
+    letter-spacing: -0.02em;
+    font-feature-settings: 'tnum';
+    font-weight: 400;
+  }
+  .vts-rail-readout .of {
+    display: block;
+    font-size: 10px;
+    color: rgba(232,192,140,0.55);
+    letter-spacing: 0.18em;
+    margin-top: 6px;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  /* Compact rail between 769 – 1200px */
+  @media (max-width: 1200px) and (min-width: 769px) {
+    .vts-rail { width: 118px; right: 12px; }
+    .vts-rail-track { right: 26px; width: 18px; top: 14vh; bottom: 14vh; }
+    .vts-rail-dot {
+      width: 10px; height: 10px;
+      box-shadow:
+        0 0 0 4px rgba(232,192,140,0.16),
+        0 0 16px rgba(232,192,140,0.75);
+    }
+    .vts-rail-tick.decade { width: 10px; }
+    .vts-rail-tick.small  { width: 5px; }
+    .vts-rail-tick-label  { left: 18px; font-size: 9px; letter-spacing: 0.1em; }
+    .vts-rail-readout     { right: 42px; }
+    .vts-rail-readout .lbl { font-size: 9px; margin-bottom: 2px; letter-spacing: 0.18em; }
+    .vts-rail-readout .num { font-size: 38px; }
+    .vts-rail-readout .of  { font-size: 9px; margin-top: 4px; }
+  }
+
+  /* True mobile: hide the rail entirely */
+  @media (max-width: 768px) { .vts-rail { display: none; } }
+
+  footer.vts-foot {
+    background: #000;
+    padding: 48px 32px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--vts-fg-mute);
+    letter-spacing: 0.06em;
+  }
+  footer.vts-foot a { color: var(--vts-accent); text-decoration: none; }
 </style>
 </head>
 <body>
 
-<!-- Demo content so there's enough page to scroll. Delete in production. -->
-<div class="demo-section"><h2>Scroll down.</h2><p>The vertical rail tracks your position from this year forward by a century. Resize the window above 1200px wide to see it.</p></div>
-<div class="demo-section"><h2>Year 25.</h2><p>The dot and serif year readout slide along the rail in lockstep with scrollY.</p></div>
-<div class="demo-section"><h2>Year 50.</h2><p>Decade ticks are labelled with their absolute year, so the user sees both relative progress and a concrete century.</p></div>
-<div class="demo-section"><h2>Year 75.</h2><p>Built for design pages and editorial scrollytelling.</p></div>
-<div class="demo-section"><h2>Year 100.</h2><p>End of the line.</p></div>
+  <section class="vts-section">
+    <div>
+      <span class="vts-eyebrow">Vertical Timeline Scroll</span>
+      <h1>A century<br><em>at the right edge.</em></h1>
+      <p>Scroll the page. A fixed rail on the right edge tracks your position as a year-of-100 readout — decade ticks light up, a glowing dot moves down the line, and a serif year display updates in real time. The rail hides on narrow viewports.</p>
+    </div>
+  </section>
 
-<!-- ===== Vert-timeline-scroll script ===== -->
+  <section class="vts-section">
+    <div>
+      <span class="vts-eyebrow">Year 25 — ish</span>
+      <h2>Mid-scroll.</h2>
+      <p>This is filler. The actual point of the page is the rail on the right; the body content just exists to give it something to track.</p>
+    </div>
+  </section>
+
+  <section class="vts-section">
+    <div>
+      <span class="vts-eyebrow">Year 50</span>
+      <h2>Halfway.</h2>
+      <p>If your readout is on-screen and the year roughly matches your scroll percent, the effect is working as intended.</p>
+    </div>
+  </section>
+
+  <section class="vts-section">
+    <div>
+      <span class="vts-eyebrow">Year 75</span>
+      <h2>Three-quarters.</h2>
+      <p>Three-quarters of the way through. The readout stays inline with the dot through the middle of the scroll range, and clamps at the rail's ends so it never spills off-screen.</p>
+    </div>
+  </section>
+
+  <section class="vts-section">
+    <div>
+      <span class="vts-eyebrow">Year 100</span>
+      <h2>End of the line.</h2>
+      <p>You can grab the source for this effect, swap the CSS custom properties to match your brand, and drop it into any HTML page. See the README for the data shape and tuning constants.</p>
+    </div>
+  </section>
+
+  <footer class="vts-foot">
+    Part of the <a href="./index.html">time-effects</a> collection · Vertical Timeline Scroll
+  </footer>
+
 <script>
-(function () {
-  var Y  = new Date().getFullYear();
-  var Yp = Y + 100;
+(function(){
 
-  // Build the rail once, append to <body> to escape any transform/overflow ancestor.
-  var rail  = document.createElement('div'); rail.className = 'vts-rail';
-  var track = document.createElement('div'); track.className = 'vts-track';
-  var line  = document.createElement('div'); line.className  = 'vts-line';
+  /* ============================================================
+     TUNING
+     ============================================================ */
+  var START_YEAR = new Date().getFullYear();
+  var SPAN_YEARS = 100;
+  var TICK_EVERY = 5;   // tick every N years (small)
+  var DECADE     = 10;  // bold tick + label every N years
+
+  var END_YEAR = START_YEAR + SPAN_YEARS;
+
+  /* ============================================================
+     BUILD THE RAIL
+     ============================================================ */
+  var rail   = document.createElement('div'); rail.className = 'vts-rail';
+  var track  = document.createElement('div'); track.className = 'vts-rail-track';
+  var line   = document.createElement('div'); line.className  = 'vts-rail-line';
   track.appendChild(line);
 
-  // Ticks every 5%, decade ticks every 10% get a year label.
-  for (var y = 0; y <= 100; y += 5) {
-    var isDecade = (y % 10 === 0);
-    var t = document.createElement('div');
-    t.className = 'vts-tick ' + (isDecade ? 'decade' : 'small');
-    t.style.top = y + '%';
-    track.appendChild(t);
-    if (isDecade) {
-      var l = document.createElement('div');
-      l.className = 'vts-tick-label';
-      l.style.top = y + '%';
-      l.textContent = Y + y;
-      track.appendChild(l);
+  for (var y = 0; y <= SPAN_YEARS; y += TICK_EVERY){
+    var isDec = (y % DECADE === 0);
+    var tk = document.createElement('div');
+    tk.className = 'vts-rail-tick ' + (isDec ? 'decade' : 'small');
+    tk.style.top = y + '%';
+    track.appendChild(tk);
+
+    if (isDec){
+      var lbl = document.createElement('div');
+      lbl.className = 'vts-rail-tick-label';
+      lbl.style.top = y + '%';
+      lbl.textContent = (START_YEAR + y);
+      track.appendChild(lbl);
     }
   }
 
-  var dot = document.createElement('div'); dot.className = 'vts-dot'; dot.style.top = '0%';
+  var dot = document.createElement('div');
+  dot.className = 'vts-rail-dot';
+  dot.style.top = '0%';
   track.appendChild(dot);
+
   rail.appendChild(track);
 
   var readout = document.createElement('div');
-  readout.className = 'vts-readout';
+  readout.className = 'vts-rail-readout';
   readout.style.top = '0%';
   readout.innerHTML =
     '<span class="lbl">Year</span>' +
-    '<span class="num" id="vts-num">' + Y + '</span>' +
-    '<span class="of">of ' + Yp + '</span>';
+    '<span class="num" id="vts-rail-num">' + START_YEAR + '</span>' +
+    '<span class="of">of ' + END_YEAR + '</span>';
   rail.appendChild(readout);
 
   document.body.appendChild(rail);
 
-  var num = document.getElementById('vts-num');
+  var num = document.getElementById('vts-rail-num');
 
-  function update() {
+  /* ============================================================
+     SCROLL LOOP
+     ============================================================ */
+  function update(){
     var d = document.documentElement;
-    var max = (d.scrollHeight - d.clientHeight) || 1;
-    var p = Math.min(1, Math.max(0, (window.scrollY || d.scrollTop) / max));
-    dot.style.top     = (p * 100) + '%';
-    readout.style.top = (p * 100) + '%';
-    num.textContent   = Y + Math.round(p * 100);
+    var m = (d.scrollHeight - d.clientHeight) || 1;
+    var p = Math.min(1, Math.max(0, (window.scrollY || d.scrollTop) / m));
+
+    // Dot follows scroll progress 1:1 across the full rail.
+    dot.style.top = (p * 100) + '%';
+
+    // Readout follows the dot but is clamped so its multi-line stack
+    // (label + 54px number + sub) never extends past the rail's ends.
+    var readoutP = Math.min(0.92, Math.max(0.08, p));
+    readout.style.top = (readoutP * 100) + '%';
+
+    num.textContent = START_YEAR + Math.round(p * SPAN_YEARS);
     rail.classList.toggle('visible', p > 0.04);
   }
 
