@@ -114,46 +114,42 @@ html, body { margin: 0; padding: 0; background: #101517; }
 }
 
 /* ── Lens overlay ───────────────────────────────────────────────
-   JS positions this div over the hovered cell and scales it 6×
-   upward. Contains week title (top) + "add a note" link (bottom).
+   Positioned by JS at the actual visual coordinates of the scaled
+   cell (no CSS transform on the lens itself — already at 6× size).
+   RAF loop reads CSS :hover state so it's always in sync.
 ────────────────────────────────────────────────────────────────── */
 .lg-lens {
   position: absolute;
   pointer-events: none;
-  transform-origin: 50% 100%;
-  transform: scale(1);
-  opacity: 0;
-  transition: transform .18s cubic-bezier(.22,.61,.36,1), opacity .1s ease;
-  z-index: 20;
+  z-index: 25;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 14% 8% 11%;
+  padding: 12% 8% 10%;
+  opacity: 0;
+  transition: opacity .12s ease;
 }
-.lg-lens.visible {
-  opacity: 1;
-  transform: scale(6);
-}
+.lg-lens.visible { opacity: 1; }
 .lg-lens-title {
   font-family: var(--sf);
-  font-size: 2.3px;
+  font-size: 14px;
   font-weight: 600;
   color: #101517;
   text-align: center;
-  line-height: 1.3;
-  white-space: nowrap;
+  line-height: 1.25;
   pointer-events: none;
+  white-space: nowrap;
 }
 .lg-lens-add {
   font-family: var(--ss);
-  font-size: 1.7px;
-  color: rgba(16,21,23,.55);
+  font-size: 10px;
+  color: rgba(16,21,23,.5);
   background: none;
   border: none;
   cursor: pointer;
   text-decoration: underline;
-  padding: 0;
+  padding: 2px 4px;
   pointer-events: all;
   white-space: nowrap;
   line-height: 1;
@@ -337,45 +333,46 @@ html, body { margin: 0; padding: 0; background: #101517; }
   const lensTitle = lens.querySelector('.lg-lens-title');
   const lensAdd   = lens.querySelector('.lg-lens-add');
 
-  let hideTimer = null;
-  let activeKey = null;
+  let prevKey    = null;
+  let modalIsOpen = false;
 
-  function showLens(cell) {
-    clearTimeout(hideTimer);
-    const key    = cell.dataset.d;
-    const notes  = loadNotes();
-    const cvRect = cv.getBoundingClientRect();
-    const cr     = cell.getBoundingClientRect();
-
-    lens.style.left   = (cr.left - cvRect.left) + 'px';
-    lens.style.top    = (cr.top  - cvRect.top)  + 'px';
-    lens.style.width  = cr.width  + 'px';
-    lens.style.height = cr.height + 'px';
-
-    lensTitle.textContent = key;
-    lensAdd.textContent   = notes[key] ? 'edit note' : '+ add a note';
-    lensAdd.dataset.key   = key;
-
-    lens.classList.add('visible');
-    activeKey = key;
+  // RAF loop: poll CSS :hover (always on the native-size <a>, correct even
+  // when the ::before tile visually covers neighbouring rows).
+  // When a new cell is hovered, compute the actual visual bounds of the 6×
+  // magnified tile and size/position the lens div there directly.
+  function tick() {
+    if (!modalIsOpen) {
+      const hov = gr.querySelector('.c:hover');
+      if (hov) {
+        const key = hov.dataset.d;
+        if (key !== prevKey) {
+          prevKey = key;
+          const notes  = loadNotes();
+          const cvRect = cv.getBoundingClientRect();
+          const cr     = hov.getBoundingClientRect();
+          const scale  = 6;
+          const w      = cr.width  * scale;
+          const h      = cr.height * scale;
+          // bottom-aligned (grows upward, matching transform-origin: 50% 100%)
+          const left   = (cr.left - cvRect.left) + cr.width  / 2 - w / 2;
+          const top    = (cr.top  - cvRect.top)  + cr.height - h;
+          lens.style.left   = left + 'px';
+          lens.style.top    = top  + 'px';
+          lens.style.width  = w    + 'px';
+          lens.style.height = h    + 'px';
+          lensTitle.textContent = key;
+          lensAdd.textContent   = notes[key] ? 'edit note' : '+ add a note';
+          lensAdd.dataset.key   = key;
+          lens.classList.add('visible');
+        }
+      } else if (prevKey !== null) {
+        lens.classList.remove('visible');
+        prevKey = null;
+      }
+    }
+    requestAnimationFrame(tick);
   }
-
-  function hideLens() {
-    lens.classList.remove('visible');
-    activeKey = null;
-  }
-
-  // Keep lens visible when mouse moves from cell into the lens button
-  cv.addEventListener('mouseover', e => {
-    const cell = e.target.closest('.c');
-    if (cell) { showLens(cell); return; }
-    if (!e.target.closest('.lg-lens')) hideLens();
-  });
-  cv.addEventListener('mouseleave', () => {
-    hideTimer = setTimeout(hideLens, 80);
-  });
-  lens.addEventListener('mouseenter', () => clearTimeout(hideTimer));
-  lens.addEventListener('mouseleave', hideLens);
+  requestAnimationFrame(tick);
 
   // ── Modal ──────────────────────────────────────────────────────
   const modalBg     = document.getElementById('lgModalBg');
@@ -388,20 +385,23 @@ html, body { margin: 0; padding: 0; background: #101517; }
   let   modalKey    = null;
 
   function openModal(key) {
-    const notes   = loadNotes();
+    const notes    = loadNotes();
     const existing = notes[key] || {};
-    modalKey          = key;
+    modalKey            = key;
     modalWk.textContent = key;
-    modalText.value   = existing.text || '';
-    modalUrl.value    = existing.url  || '';
+    modalText.value     = existing.text || '';
+    modalUrl.value      = existing.url  || '';
+    modalIsOpen = true;
+    lens.classList.remove('visible');
+    prevKey = null;
     modalBg.classList.add('open');
     setTimeout(() => modalText.focus(), 50);
-    hideLens();
   }
 
   function closeModal() {
     modalBg.classList.remove('open');
-    modalKey = null;
+    modalKey    = null;
+    modalIsOpen = false;
   }
 
   function saveNote() {
