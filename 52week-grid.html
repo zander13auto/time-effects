@@ -5,14 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>52-Week Life Grid · 02026–02035</title>
 <style>
-*, *:before, *:after { box-sizing: border-box; }
+*, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #101517; }
 
 .lg-root {
   --ac: #e8c08c;
   --bl: #3858E9;
-  --sf: 'Recoleta', 'Cormorant Garamond', 'Times New Roman', serif;
-  --ss: 'Inter', 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  --sf: 'Recoleta','Cormorant Garamond','Times New Roman',serif;
+  --ss: 'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif;
   background: #101517;
   color: #fff;
   font-family: var(--ss);
@@ -21,186 +21,271 @@ html, body { margin: 0; padding: 0; background: #101517; }
   padding: 64px 32px 96px;
 }
 .lg-wrap { max-width: 1280px; margin: 0 auto; }
+.eb { display:inline-block; font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--ac); margin-bottom:24px; }
+.tt { font-family:var(--sf); font-weight:400; letter-spacing:-.02em; line-height:1.05; font-size:clamp(40px,6vw,72px); color:#fff; margin:0 0 16px; }
+.tt em { font-style:italic; color:var(--ac); font-weight:300; }
+.ld { font-size:17px; color:#dcdcde; max-width:680px; margin:0 0 40px; line-height:1.6; }
+.mt { display:flex; gap:32px; flex-wrap:wrap; margin-bottom:40px; padding:20px 24px; background:rgba(232,192,140,.04); border:1px solid rgba(232,192,140,.18); border-radius:8px; }
+.mi { display:flex; flex-direction:column; gap:4px; }
+.mi .k { font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ac); font-weight:600; }
+.mi .v { font-family:var(--sf); font-size:22px; color:#fff; font-feature-settings:'tnum'; }
+.mi .v small { font-size:13px; color:#a7aaad; font-family:var(--ss); margin-left:6px; }
 
-.eb {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--ac);
-  margin-bottom: 24px;
-}
-.tt {
-  font-family: var(--sf);
-  font-weight: 400;
-  letter-spacing: -.02em;
-  line-height: 1.05;
-  font-size: clamp(40px, 6vw, 72px);
-  color: #fff;
-  margin: 0 0 16px;
-}
-.tt em { font-style: italic; color: var(--ac); font-weight: 300; }
-.ld { font-size: 17px; color: #dcdcde; max-width: 680px; margin: 0 0 40px; line-height: 1.6; }
+/* Container */
+.cv { background:#0a0d0f; border:1px solid rgba(232,192,140,.25); border-radius:6px; padding:36px 24px 24px 64px; position:relative; }
+.ax { position:absolute; top:14px; left:64px; right:24px; display:grid; grid-template-columns:repeat(52,1fr); font-size:10px; color:rgba(232,192,140,.7); letter-spacing:.06em; font-feature-settings:'tnum'; font-weight:600; text-align:center; }
+.ay { position:absolute; top:36px; left:8px; bottom:24px; display:grid; grid-template-rows:repeat(10,1fr); font-size:10px; color:rgba(232,192,140,.7); letter-spacing:.06em; font-feature-settings:'tnum'; font-weight:600; text-align:right; padding-right:10px; width:50px; align-items:center; }
 
-.mt {
-  display: flex;
-  gap: 32px;
-  flex-wrap: wrap;
-  margin-bottom: 40px;
-  padding: 20px 24px;
-  background: rgba(232,192,140,.04);
-  border: 1px solid rgba(232,192,140,.18);
-  border-radius: 8px;
-}
-.mi { display: flex; flex-direction: column; gap: 4px; }
-.mi .k { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ac); font-weight: 600; }
-.mi .v { font-family: var(--sf); font-size: 22px; color: #fff; font-feature-settings: 'tnum'; }
-.mi .v small { font-size: 13px; color: #a7aaad; font-family: var(--ss); margin-left: 6px; }
+/* Grid */
+.gr { display:grid; grid-template-columns:repeat(52,1fr); gap:2px; background:rgba(232,192,140,.18); padding:2px; border-radius:3px; }
 
-.cv {
-  background: #0a0d0f;
-  border: 1px solid rgba(232,192,140,.25);
-  border-radius: 6px;
-  padding: 36px 24px 24px 64px;
-  position: relative;
-}
-.ax {
-  position: absolute;
-  top: 14px;
-  left: 64px;
-  right: 24px;
-  display: grid;
-  grid-template-columns: repeat(52, 1fr);
-  font-size: 10px;
-  color: rgba(232,192,140,.7);
-  letter-spacing: .06em;
-  font-feature-settings: 'tnum';
-  font-weight: 600;
-  text-align: center;
-}
-.ay {
-  position: absolute;
-  top: 36px;
-  left: 8px;
-  bottom: 24px;
-  display: grid;
-  grid-template-rows: repeat(10, 1fr);
-  font-size: 10px;
-  color: rgba(232,192,140,.7);
-  letter-spacing: .06em;
-  font-feature-settings: 'tnum';
-  font-weight: 600;
-  text-align: right;
-  padding-right: 10px;
-  width: 50px;
-  align-items: center;
-}
-.gr {
-  display: grid;
-  grid-template-columns: repeat(52, 1fr);
-  gap: 2px;
-  background: rgba(232,192,140,.18);
-  padding: 2px;
-  border-radius: 3px;
-}
-
-/* Cell base */
+/* ── Cell ──────────────────────────────────────────────────────────
+   The <a> stays at native size — correct hit detection, no skipping.
+   All visual scaling lives in ::before with pointer-events:none.
+   transform-origin: 50% 100% → tile grows UPWARD from bottom edge.
+────────────────────────────────────────────────────────────────── */
 .c {
   aspect-ratio: 1/1;
-  background: #1d2327;
-  border: 1px solid rgba(232,192,140,.1);
   text-decoration: none;
   color: transparent;
   position: relative;
-  transform-origin: center;
-  transition: transform .18s cubic-bezier(.22,.61,.36,1), background .15s ease, border-color .15s ease, box-shadow .15s ease;
   font-size: 0;
   line-height: 1;
+  overflow: visible;
 }
-.c:before {
-  content: attr(data-d);
+
+.c::before {
+  content: '';
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--sf);
-  font-style: italic;
-  font-size: 2.6px;
-  line-height: 1;
-  color: #101517;
-  text-align: center;
-  opacity: 0;
-  transition: opacity .15s ease;
-  white-space: nowrap;
-  letter-spacing: -.02em;
-  font-weight: 500;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  transition: transform .18s cubic-bezier(.22,.61,.36,1),
+              background .15s ease,
+              border-color .15s ease,
+              box-shadow .15s ease,
+              border-radius .15s ease;
+  background: #1d2327;
+  border: 1px solid rgba(232,192,140,.1);
 }
 
-/* Cell state variants */
-.c.n  { background: rgba(232,192,140,.5); border-color: rgba(232,192,140,.8); }
-.c.n.l { background: var(--ac); }
-.c.t  { outline: 2px solid var(--bl); outline-offset: -1px; z-index: 2; }
+/* Note state variants */
+.c.n::before   { background: rgba(232,192,140,.5); border-color: rgba(232,192,140,.8); }
+.c.n.l::before { background: var(--ac); }
+.c.t::before   { outline: 2px solid var(--bl); outline-offset: -1px; }
 
-/* Fisheye hover — hovered cell */
-.c:hover {
+/* Hovered cell — z-index on .c keeps stacking correct */
+.c:hover { z-index: 9; }
+.c:hover::before {
   transform: scale(6);
-  z-index: 9;
   background: var(--ac);
   border-color: var(--ac);
+  border-radius: 5px;
   box-shadow: 0 0 0 1px var(--ac), 0 12px 36px rgba(0,0,0,.8);
 }
-.c:hover:before { opacity: 1; }
 
-/* ±1 neighbors */
-.c:hover + .c,
-.c:has(+ .c:hover) {
+/* ±1 */
+.c:hover + .c              { z-index: 7; }
+.c:has(+ .c:hover)         { z-index: 7; }
+.c:hover + .c::before,
+.c:has(+ .c:hover)::before {
   transform: scale(3.6);
-  z-index: 7;
   background: rgba(232,192,140,.75);
   border-color: rgba(232,192,140,.85);
   box-shadow: 0 6px 20px rgba(0,0,0,.55);
 }
 
-/* ±2 neighbors */
-.c:hover + .c + .c,
-.c:has(+ .c + .c:hover) {
+/* ±2 */
+.c:hover + .c + .c              { z-index: 5; }
+.c:has(+ .c + .c:hover)         { z-index: 5; }
+.c:hover + .c + .c::before,
+.c:has(+ .c + .c:hover)::before {
   transform: scale(2.2);
-  z-index: 5;
   background: rgba(232,192,140,.45);
 }
 
-/* ±3 neighbors */
-.c:hover + .c + .c + .c,
-.c:has(+ .c + .c + .c:hover) {
+/* ±3 */
+.c:hover + .c + .c + .c              { z-index: 3; }
+.c:has(+ .c + .c + .c:hover)         { z-index: 3; }
+.c:hover + .c + .c + .c::before,
+.c:has(+ .c + .c + .c:hover)::before {
   transform: scale(1.45);
-  z-index: 3;
   background: rgba(232,192,140,.22);
 }
 
-.ft {
-  background: #000;
-  padding: 32px;
-  text-align: center;
-  font-size: 12px;
-  color: #a7aaad;
-  letter-spacing: .06em;
-  margin: 64px -32px -96px;
+/* ── Lens overlay ───────────────────────────────────────────────
+   JS positions this div over the hovered cell and scales it 6×
+   upward. Contains week title (top) + "add a note" link (bottom).
+────────────────────────────────────────────────────────────────── */
+.lg-lens {
+  position: absolute;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  transform: scale(1);
+  opacity: 0;
+  transition: transform .18s cubic-bezier(.22,.61,.36,1), opacity .1s ease;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14% 8% 11%;
 }
-.ft a { color: var(--ac); text-decoration: none; }
+.lg-lens.visible {
+  opacity: 1;
+  transform: scale(6);
+}
+.lg-lens-title {
+  font-family: var(--sf);
+  font-size: 2.3px;
+  font-weight: 600;
+  color: #101517;
+  text-align: center;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.lg-lens-add {
+  font-family: var(--ss);
+  font-size: 1.7px;
+  color: rgba(16,21,23,.55);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  pointer-events: all;
+  white-space: nowrap;
+  line-height: 1;
+}
+.lg-lens-add:hover { color: #101517; }
+
+/* ── Note modal ─────────────────────────────────────────────── */
+.lg-modal-bg {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.72);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.lg-modal-bg.open { display: flex; }
+.lg-modal {
+  background: #1a1f23;
+  border: 1px solid rgba(232,192,140,.22);
+  border-radius: 12px;
+  padding: 32px;
+  width: 440px;
+  max-width: calc(100vw - 48px);
+}
+.lg-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+.lg-modal-wk {
+  font-family: var(--sf);
+  font-size: 20px;
+  color: var(--ac);
+  font-weight: 400;
+  line-height: 1.2;
+}
+.lg-modal-close {
+  background: none;
+  border: none;
+  color: #5a6370;
+  font-size: 22px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  margin-top: -2px;
+}
+.lg-modal-close:hover { color: #fff; }
+.lg-modal-lbl {
+  display: block;
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(232,192,140,.65);
+  font-weight: 600;
+  margin-bottom: 7px;
+}
+.lg-modal-text {
+  width: 100%;
+  background: #101517;
+  border: 1px solid rgba(232,192,140,.18);
+  border-radius: 6px;
+  color: #dcdcde;
+  font-family: var(--ss);
+  font-size: 15px;
+  line-height: 1.6;
+  padding: 11px 14px;
+  resize: vertical;
+  min-height: 96px;
+  margin-bottom: 14px;
+  outline: none;
+}
+.lg-modal-text:focus { border-color: rgba(232,192,140,.45); }
+.lg-modal-url {
+  width: 100%;
+  background: #101517;
+  border: 1px solid rgba(232,192,140,.18);
+  border-radius: 6px;
+  color: #dcdcde;
+  font-family: var(--ss);
+  font-size: 14px;
+  padding: 10px 14px;
+  margin-bottom: 24px;
+  outline: none;
+}
+.lg-modal-url:focus { border-color: rgba(232,192,140,.45); }
+.lg-modal-text::placeholder,
+.lg-modal-url::placeholder { color: #384048; }
+.lg-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.lg-btn-cancel {
+  background: transparent;
+  border: 1px solid rgba(232,192,140,.2);
+  color: #7a8390;
+  padding: 9px 18px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: var(--ss);
+}
+.lg-btn-cancel:hover { border-color: rgba(232,192,140,.45); color: #fff; }
+.lg-btn-save {
+  background: var(--ac);
+  border: none;
+  color: #101517;
+  padding: 9px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--ss);
+}
+.lg-btn-save:hover { background: #f0cfa0; }
+
+.ft { background:#000; padding:32px; text-align:center; font-size:12px; color:#a7aaad; letter-spacing:.06em; margin:64px -32px -96px; }
+.ft a { color:var(--ac); text-decoration:none; }
 </style>
 </head>
 <body>
 <div class="lg-root"><div class="lg-wrap">
-<span class="eb">Prototype · 52 × 10 · CSS-only · Fisheye hover</span>
+<span class="eb">Prototype · 52 × 10 · Fisheye hover · JS notes</span>
 <h1 class="tt">A decade, <em>one week at a time.</em></h1>
-<p class="ld">520 cells (one decade) at full visual fidelity. Hover any cell to magnify — neighboring cells scale down gradually like a Mac dock. Resize the window to see cells scale fluidly.</p>
+<p class="ld">520 cells spanning one decade. Hover any cell to magnify — neighboring cells scale with a fisheye effect. Click "add a note" on any week to annotate it.</p>
 <div class="mt">
   <div class="mi"><span class="k">Span</span><span class="v">02026<small>–</small>02035</span></div>
   <div class="mi"><span class="k">Weeks</span><span class="v">520</span></div>
   <div class="mi"><span class="k">Sample notes</span><span class="v">5</span></div>
-  <div class="mi"><span class="k">JS used</span><span class="v">0<small>none</small></span></div>
+  <div class="mi"><span class="k">Notes stored</span><span class="v" id="noteCount">0<small>localStorage</small></span></div>
 </div>
 <div class="cv">
   <div class="ax"><span>1</span><span></span><span></span><span></span><span>5</span><span></span><span></span><span></span><span></span><span>10</span><span></span><span></span><span></span><span></span><span>15</span><span></span><span></span><span></span><span></span><span>20</span><span></span><span></span><span></span><span></span><span>25</span><span></span><span></span><span></span><span></span><span>30</span><span></span><span></span><span></span><span></span><span>35</span><span></span><span></span><span></span><span></span><span>40</span><span></span><span></span><span></span><span></span><span>45</span><span></span><span></span><span></span><span></span><span>50</span><span></span><span>52</span></div>
@@ -219,5 +304,160 @@ html, body { margin: 0; padding: 0; background: #101517; }
   </div>
 </div>
 </div></div>
+
+<!-- Note modal -->
+<div class="lg-modal-bg" id="lgModalBg">
+  <div class="lg-modal">
+    <div class="lg-modal-head">
+      <span class="lg-modal-wk" id="lgModalWk"></span>
+      <button class="lg-modal-close" id="lgModalClose" aria-label="Close">×</button>
+    </div>
+    <label class="lg-modal-lbl" for="lgModalText">Note</label>
+    <textarea class="lg-modal-text" id="lgModalText" placeholder="What happened this week?"></textarea>
+    <label class="lg-modal-lbl" for="lgModalUrl">Link (optional)</label>
+    <input class="lg-modal-url" id="lgModalUrl" type="url" placeholder="https://...">
+    <div class="lg-modal-actions">
+      <button class="lg-btn-cancel" id="lgModalCancel">Cancel</button>
+      <button class="lg-btn-save" id="lgModalSave">Save note</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const STORE = 'lg-notes-v1';
+  const cv    = document.querySelector('.cv');
+  const gr    = document.querySelector('.gr');
+
+  // ── Lens overlay ───────────────────────────────────────────────
+  const lens      = document.createElement('div');
+  lens.className  = 'lg-lens';
+  lens.innerHTML  = '<span class="lg-lens-title"></span><button class="lg-lens-add"></button>';
+  cv.appendChild(lens);
+  const lensTitle = lens.querySelector('.lg-lens-title');
+  const lensAdd   = lens.querySelector('.lg-lens-add');
+
+  let hideTimer = null;
+  let activeKey = null;
+
+  function showLens(cell) {
+    clearTimeout(hideTimer);
+    const key    = cell.dataset.d;
+    const notes  = loadNotes();
+    const cvRect = cv.getBoundingClientRect();
+    const cr     = cell.getBoundingClientRect();
+
+    lens.style.left   = (cr.left - cvRect.left) + 'px';
+    lens.style.top    = (cr.top  - cvRect.top)  + 'px';
+    lens.style.width  = cr.width  + 'px';
+    lens.style.height = cr.height + 'px';
+
+    lensTitle.textContent = key;
+    lensAdd.textContent   = notes[key] ? 'edit note' : '+ add a note';
+    lensAdd.dataset.key   = key;
+
+    lens.classList.add('visible');
+    activeKey = key;
+  }
+
+  function hideLens() {
+    lens.classList.remove('visible');
+    activeKey = null;
+  }
+
+  // Keep lens visible when mouse moves from cell into the lens button
+  cv.addEventListener('mouseover', e => {
+    const cell = e.target.closest('.c');
+    if (cell) { showLens(cell); return; }
+    if (!e.target.closest('.lg-lens')) hideLens();
+  });
+  cv.addEventListener('mouseleave', () => {
+    hideTimer = setTimeout(hideLens, 80);
+  });
+  lens.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+  lens.addEventListener('mouseleave', hideLens);
+
+  // ── Modal ──────────────────────────────────────────────────────
+  const modalBg     = document.getElementById('lgModalBg');
+  const modalWk     = document.getElementById('lgModalWk');
+  const modalText   = document.getElementById('lgModalText');
+  const modalUrl    = document.getElementById('lgModalUrl');
+  const modalClose  = document.getElementById('lgModalClose');
+  const modalCancel = document.getElementById('lgModalCancel');
+  const modalSave   = document.getElementById('lgModalSave');
+  let   modalKey    = null;
+
+  function openModal(key) {
+    const notes   = loadNotes();
+    const existing = notes[key] || {};
+    modalKey          = key;
+    modalWk.textContent = key;
+    modalText.value   = existing.text || '';
+    modalUrl.value    = existing.url  || '';
+    modalBg.classList.add('open');
+    setTimeout(() => modalText.focus(), 50);
+    hideLens();
+  }
+
+  function closeModal() {
+    modalBg.classList.remove('open');
+    modalKey = null;
+  }
+
+  function saveNote() {
+    if (!modalKey) return;
+    const text = modalText.value.trim();
+    const url  = modalUrl.value.trim();
+    const notes = loadNotes();
+
+    if (text || url) {
+      notes[modalKey] = { text, url };
+    } else {
+      delete notes[modalKey];
+    }
+    saveNotes(notes);
+    applyNoteClasses(notes);
+    updateCount(notes);
+    closeModal();
+  }
+
+  lensAdd.addEventListener('click', () => {
+    if (lensAdd.dataset.key) openModal(lensAdd.dataset.key);
+  });
+  modalClose.addEventListener('click',  closeModal);
+  modalCancel.addEventListener('click', closeModal);
+  modalSave.addEventListener('click',   saveNote);
+  modalBg.addEventListener('click', e => { if (e.target === modalBg) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // ── localStorage helpers ───────────────────────────────────────
+  function loadNotes() {
+    try { return JSON.parse(localStorage.getItem(STORE)) || {}; }
+    catch { return {}; }
+  }
+  function saveNotes(notes) {
+    localStorage.setItem(STORE, JSON.stringify(notes));
+  }
+
+  function applyNoteClasses(notes) {
+    document.querySelectorAll('.c').forEach(cell => {
+      const n = notes[cell.dataset.d];
+      cell.classList.toggle('n',   !!n);
+      cell.classList.toggle('l',   !!(n && n.url));
+    });
+  }
+
+  function updateCount(notes) {
+    const count = Object.keys(notes).length;
+    const el    = document.getElementById('noteCount');
+    if (el) el.childNodes[0].textContent = count;
+  }
+
+  // ── Init: restore saved notes ──────────────────────────────────
+  const notes = loadNotes();
+  applyNoteClasses(notes);
+  updateCount(notes);
+})();
+</script>
 </body>
 </html>
