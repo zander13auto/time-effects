@@ -208,7 +208,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 <body>
 <div class="root"><div class="wrap">
 
-<span class="eyebrow" id="eyebrow">Prototype v20260607·2031 · 52 × 100 · Notes</span>
+<span class="eyebrow" id="eyebrow">Prototype v20260607·2031 · 52 × 100</span>
 <h1 class="title" id="mainTitle">A century, <em>one week at a time.</em></h1>
 <p class="lead">Hover to preview any week. Click to add or read a note.</p>
 
@@ -243,8 +243,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="k">Weeks</span>
     <span class="v" id="weeksDisplay"></span>
   </div>
+  <div class="meta-item">
+    <span class="k">Entries</span>
+    <span class="v" id="entryCount">0<small>saved</small></span>
+  </div>
   <div class="meta-reset">
-    <button class="reset-btn" id="resetBtn" style="display:none" title="Clear all saved notes">↺ Reset notes</button>
+    <button class="reset-btn" id="resetBtn" style="display:none" title="Clear all saved entries">↺ Reset entries</button>
   </div>
 </div>
 
@@ -268,7 +272,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="lens-note-txt" id="lensNoteTxt"></span>
     <a class="lens-link-txt" id="lensLinkTxt" target="_blank" rel="noopener"></a>
   </div>
-  <div class="lens-cta" id="lensCta">click to add a note</div>
+  <div class="lens-cta" id="lensCta">click to add an entry</div>
 </div>
 
 <!-- Modal -->
@@ -286,7 +290,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         <a class="link-display" id="viewLink" target="_blank" rel="noopener" style="display:none"></a>
       </div>
       <div class="modal-actions">
-        <button class="btn-edit" id="btnEdit">Edit note</button>
+        <button class="btn-edit" id="btnEdit">Edit entry</button>
         <button class="btn-done" id="btnDone">Close</button>
       </div>
     </div>
@@ -294,14 +298,14 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <!-- Edit state -->
     <div id="modeEdit">
       <div class="modal-body">
-        <label class="modal-lbl" for="modalText">Note</label>
+        <label class="modal-lbl" for="modalText">Entry</label>
         <textarea class="modal-field" id="modalText" placeholder="What happened this week?"></textarea>
         <label class="modal-lbl" for="modalUrl">Link (optional)</label>
         <input  class="modal-field" id="modalUrl" type="url" placeholder="https://...">
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="modalCancel">Cancel</button>
-        <button class="btn-save"   id="modalSave">Save note</button>
+        <button class="btn-save"   id="modalSave">Save entry</button>
       </div>
     </div>
   </div>
@@ -311,16 +315,16 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 <div class="modal-bg" id="resetBg">
   <div class="modal" style="max-width:380px">
     <div class="modal-head">
-      <span class="modal-wk">Clear all notes?</span>
+      <span class="modal-wk">Clear all entries?</span>
       <button class="modal-close" id="resetClose" aria-label="Close">×</button>
     </div>
     <div style="display:flex;flex-direction:column;flex:1;min-height:0">
       <div class="modal-body">
-        <p style="font-size:15px;color:#dcdcde;margin:0;line-height:1.65">This will permanently delete all saved notes from your browser. This cannot be undone.</p>
+        <p style="font-size:15px;color:#dcdcde;margin:0;line-height:1.65">This will permanently delete all saved entries from your browser. This cannot be undone.</p>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="resetCancel">Cancel</button>
-        <button class="btn-delete" id="resetConfirm">Clear all notes</button>
+        <button class="btn-delete" id="resetConfirm">Clear all entries</button>
       </div>
     </div>
   </div>
@@ -528,6 +532,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       cell.classList.toggle('has-note', !!(note && (note.text || note.url)));
       cell.classList.toggle('has-link', !!(note && note.url));
     }
+    var ec = document.getElementById('entryCount');
+    if (ec) ec.innerHTML = Object.keys(notes).length + '<small>saved</small>';
     var rb = document.getElementById('resetBtn');
     if (rb) rb.style.display = Object.keys(notes).length ? '' : 'none';
   }
@@ -566,7 +572,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       lensCta.textContent = 'click to view or edit';
     } else {
       lensPreview.classList.remove('on');
-      lensCta.textContent = 'click to add a note';
+      lensCta.textContent = 'click to add an entry';
     }
   }
 
