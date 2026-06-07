@@ -198,8 +198,29 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 
 /* Calendar import / export buttons */
 .cal-btns { display: flex; gap: 5px; margin-top: 4px; }
-.cal-btn { background: none; border: 1px solid rgba(232,192,140,.25); color: rgba(232,192,140,.6); font-size: 10px; padding: 2px 8px; border-radius: 3px; cursor: pointer; font-family: var(--ss); letter-spacing: .04em; line-height: 1.6; }
+.cal-btn { position: relative; background: none; border: 1px solid rgba(232,192,140,.25); color: rgba(232,192,140,.6); font-size: 10px; padding: 2px 8px; border-radius: 3px; cursor: pointer; font-family: var(--ss); letter-spacing: .04em; line-height: 1.6; }
 .cal-btn:hover { border-color: var(--ac); color: var(--ac); }
+.cal-btn[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1f23;
+  border: 1px solid var(--bd);
+  color: #dcdcde;
+  font-size: 10px;
+  line-height: 1.5;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 5px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+  z-index: 500;
+  letter-spacing: .02em;
+}
+.cal-btn[data-tip]:hover::after { opacity: 1; }
 
 /* Reset button in meta bar */
 .meta-reset { margin-left: auto; display: flex; align-items: center; }
@@ -261,8 +282,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   <div class="meta-item">
     <span class="k">Calendar</span>
     <div class="cal-btns">
-      <button class="cal-btn" id="importBtn">↑ Import CSV</button>
-      <button class="cal-btn" id="exportBtn">↓ Export CSV</button>
+      <button class="cal-btn" id="importBtn" data-tip="Accepts .ics (iCalendar) · .csv (Google Cal, Outlook)">↑ Import</button>
+      <button class="cal-btn" id="exportBtn" data-tip="Downloads .csv · compatible with Google Calendar">↓ Export</button>
     </div>
     <input type="file" id="importFile" accept=".csv,.ics,text/calendar" style="display:none">
   </div>
