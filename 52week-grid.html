@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>52-Week Life Grid · 02026–02125</title>
+<title>52-Week Life Grid</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #101517; }
@@ -26,25 +26,36 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .title em { font-style: italic; color: var(--ac); font-weight: 300; }
 .lead { font-size: 17px; color: #dcdcde; max-width: 680px; margin: 0 0 40px; line-height: 1.6; }
 
-.meta { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 40px; padding: 20px 24px; background: rgba(232,192,140,.04); border: 1px solid var(--bd); border-radius: 8px; }
+/* ── Meta bar ─────────────────────────────────────────────────────── */
+.meta { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 40px; padding: 20px 24px; background: rgba(232,192,140,.04); border: 1px solid var(--bd); border-radius: 8px; align-items: flex-start; }
 .meta-item { display: flex; flex-direction: column; gap: 4px; }
-.meta-item .k { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ac); font-weight: 600; }
+.meta-item .k { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ac); font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .meta-item .v { font-family: var(--sf); font-size: 22px; color: #fff; font-feature-settings: 'tnum'; }
 .meta-item .v small { font-size: 13px; color: #a7aaad; font-family: var(--ss); margin-left: 6px; }
 
+/* Span edit controls */
+.edit-span-btn { background: none; border: 1px solid rgba(232,192,140,.25); color: rgba(232,192,140,.6); font-size: 10px; padding: 1px 6px; border-radius: 3px; cursor: pointer; font-family: var(--ss); letter-spacing: .04em; line-height: 1.6; }
+.edit-span-btn:hover { border-color: var(--ac); color: var(--ac); }
+.span-form { display: none; align-items: center; gap: 6px; margin-top: 4px; }
+.span-form.on { display: flex; }
+.span-input { width: 64px; background: var(--bg); border: 1px solid var(--bd); border-radius: 5px; color: #fff; font-family: var(--ss); font-size: 14px; padding: 5px 8px; outline: none; -moz-appearance: textfield; }
+.span-input::-webkit-inner-spin-button, .span-input::-webkit-outer-spin-button { -webkit-appearance: none; }
+.span-input:focus { border-color: var(--ac); }
+.span-hint { font-size: 11px; color: rgba(232,192,140,.5); }
+.span-ok { background: var(--ac); border: none; color: var(--bg); font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-family: var(--ss); }
+.span-ok:hover { background: #f0cfa0; }
+.span-x  { background: none; border: none; color: #5a6370; font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; }
+.span-x:hover { color: #fff; }
+
+/* ── Grid container ───────────────────────────────────────────────── */
 .container { background: var(--bg2); border: 1px solid rgba(232,192,140,.25); border-radius: 6px; padding: 36px 24px 24px 64px; position: relative; }
 .axis-x { position: absolute; top: 14px; left: 64px; right: 24px; display: grid; grid-template-columns: repeat(52,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: center; }
-.axis-y { position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px; display: grid; grid-template-rows: repeat(100,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: right; padding-right: 10px; align-items: center; }
+.axis-y { position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px; display: grid; font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: right; padding-right: 10px; align-items: center; }
 
-/* Grid — one .row per year so siblings don't cross year boundaries */
 .grid { display: flex; flex-direction: column; background: rgba(232,192,140,.18); padding: 2px; border-radius: 3px; gap: 2px; }
 .row  { display: grid; grid-template-columns: repeat(52,1fr); gap: 2px; }
 
-/* ── Cell ─────────────────────────────────────────────────────────
-   No scaling. The ::before carries only color/glow transitions.
-   The cursor lands on the native-size .c element always.
-   Clicking anywhere on .c opens the modal.
-──────────────────────────────────────────────────────────────────── */
+/* ── Cell ─────────────────────────────────────────────────────────── */
 .c {
   aspect-ratio: 1/1;
   display: block;
@@ -61,32 +72,17 @@ html, body { margin: 0; padding: 0; background: #101517; }
   border: 1px solid rgba(232,192,140,.1);
   transition: background .1s ease, border-color .1s ease, box-shadow .1s ease;
 }
-
-/* Persistent state dots */
 .c.has-note::before          { background: rgba(232,192,140,.45); border-color: rgba(232,192,140,.7); }
 .c.has-note.has-link::before { background: var(--ac); }
 .c.is-today::before          { outline: 2px solid var(--bl); outline-offset: -1px; }
-
-/* Hover: highlight only — no scale, no fisheye neighbours */
 .c:hover { z-index: 9; }
-.c:hover::before {
-  background: var(--ac);
-  border-color: var(--ac);
-  box-shadow: 0 0 0 2px var(--ac), 0 0 10px rgba(232,192,140,.5);
-}
-/* Keep highlight when cursor moves to the lens above the cell */
-.c.pinned::before {
+.c:hover::before, .c.pinned::before {
   background: var(--ac);
   border-color: var(--ac);
   box-shadow: 0 0 0 2px var(--ac), 0 0 10px rgba(232,192,140,.5);
 }
 
-/* ── Floating lens ────────────────────────────────────────────────
-   JS positions this above the cursor. pointer-events:none so the
-   cursor always lands on the .c beneath — smooth tracking at any
-   scale. The lens IS the "magnified" view of the hovered cell.
-   Only the link inside has pointer-events:auto.
-──────────────────────────────────────────────────────────────────── */
+/* ── Floating lens ────────────────────────────────────────────────── */
 .lens {
   position: fixed;
   width: 180px;
@@ -100,95 +96,95 @@ html, body { margin: 0; padding: 0; background: #101517; }
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  /* Subtle pointer triangle at bottom-center */
 }
 .lens.on { display: flex; }
-
-/* Small triangle pointing down toward the hovered cell */
 .lens::after {
   content: '';
   position: absolute;
   bottom: -7px;
   left: 50%;
   transform: translateX(-50%);
-  width: 0;
-  height: 0;
+  width: 0; height: 0;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
   border-top: 8px solid var(--ac);
 }
-
 .lens-head { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
 .lens-week { font-family: var(--sf); font-size: 22px; font-weight: 600; color: #101517; text-align: center; line-height: 1.1; }
 .lens-year { font-family: var(--ss); font-size: 12px; color: rgba(16,21,23,.5); letter-spacing: .06em; }
-
 .lens-divider { width: 100%; height: 1px; background: rgba(16,21,23,.12); }
-
-.lens-preview {
-  display: none;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
-}
+.lens-preview { display: none; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
 .lens-preview.on { display: flex; }
-.lens-note-txt {
-  font-family: var(--ss);
-  font-size: 11px;
-  color: rgba(16,21,23,.7);
-  text-align: center;
-  width: 100%;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  line-height: 1.4;
-}
-.lens-link-txt {
-  font-family: var(--ss);
-  font-size: 11px;
-  color: rgba(16,21,23,.55);
-  text-decoration: underline;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-  pointer-events: auto;
-  cursor: pointer;
-}
+.lens-note-txt { font-family: var(--ss); font-size: 11px; color: rgba(16,21,23,.7); text-align: center; width: 100%; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; line-height: 1.4; }
+.lens-link-txt { font-family: var(--ss); font-size: 11px; color: rgba(16,21,23,.55); text-decoration: underline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; pointer-events: auto; cursor: pointer; }
 .lens-link-txt:hover { color: #101517; }
+.lens-cta { font-family: var(--ss); font-size: 10px; color: rgba(16,21,23,.4); text-align: center; letter-spacing: .04em; }
 
-.lens-cta {
-  font-family: var(--ss);
-  font-size: 10px;
-  color: rgba(16,21,23,.4);
-  text-align: center;
-  letter-spacing: .04em;
-}
-
-/* ── Modal ──────────────────────────────────────────────────────── */
-.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 200; align-items: center; justify-content: center; }
+/* ── Modal ────────────────────────────────────────────────────────── */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 200; align-items: center; justify-content: center; padding: 24px; }
 .modal-bg.open { display: flex; }
-.modal { background: #1a1f23; border: 1px solid var(--bd); border-radius: 12px; padding: 32px; width: 440px; max-width: calc(100vw - 48px); }
-.modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.modal {
+  background: #1a1f23;
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 32px;
+  width: 440px;
+  max-width: 100%;
+  /* Constrain to viewport and allow scrolling */
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+.modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-shrink: 0; }
 .modal-wk   { font-family: var(--sf); font-size: 20px; color: var(--ac); font-weight: 400; line-height: 1.2; }
 .modal-close { background: none; border: none; color: #5a6370; font-size: 22px; cursor: pointer; padding: 0; line-height: 1; }
 .modal-close:hover { color: #fff; }
 
-/* View state */
+/* View / Edit states flex to fill remaining modal height */
+#modeView, #modeEdit {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Scrollable content area within the modal */
+.modal-body {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+  padding-right: 4px; /* room for scrollbar */
+}
+.modal-body::-webkit-scrollbar { width: 4px; }
+.modal-body::-webkit-scrollbar-track { background: transparent; }
+.modal-body::-webkit-scrollbar-thumb { background: rgba(232,192,140,.2); border-radius: 2px; }
+
+/* Actions always pinned at the bottom */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
+  flex-shrink: 0;
+  padding-top: 16px;
+  margin-top: 8px;
+  border-top: 1px solid rgba(232,192,140,.06);
+}
+
+/* View mode content */
 .note-display { font-size: 15px; color: #dcdcde; line-height: 1.65; margin: 0 0 12px; white-space: pre-wrap; font-family: var(--ss); }
-.link-display { display: block; font-size: 14px; color: var(--ac); text-decoration: underline; margin-bottom: 24px; word-break: break-all; }
+.link-display { display: block; font-size: 14px; color: var(--ac); text-decoration: underline; margin-bottom: 8px; word-break: break-all; }
 .link-display:hover { color: #f0cfa0; }
 
-/* Edit state */
+/* Edit mode content */
 .modal-lbl   { display: block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: rgba(232,192,140,.65); font-weight: 600; margin-bottom: 7px; }
 .modal-field { width: 100%; background: var(--bg); border: 1px solid var(--bd); border-radius: 6px; color: #dcdcde; font-family: var(--ss); padding: 11px 14px; outline: none; margin-bottom: 14px; }
 .modal-field:focus { border-color: rgba(232,192,140,.45); }
 .modal-field::placeholder { color: #384048; }
-textarea.modal-field { font-size: 15px; line-height: 1.6; resize: vertical; min-height: 96px; }
-input.modal-field    { font-size: 14px; margin-bottom: 24px; }
+textarea.modal-field { font-size: 15px; line-height: 1.6; resize: vertical; min-height: 96px; max-height: 40vh; }
+input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 
-.modal-actions { display: flex; justify-content: flex-end; gap: 10px; align-items: center; }
 .btn-cancel { background: transparent; border: 1px solid rgba(232,192,140,.2); color: #7a8390; padding: 9px 18px; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: var(--ss); }
 .btn-cancel:hover { border-color: rgba(232,192,140,.45); color: #fff; }
 .btn-edit   { background: transparent; border: 1px solid rgba(232,192,140,.3); color: var(--ac); padding: 9px 18px; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: var(--ss); }
@@ -202,14 +198,36 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 <body>
 <div class="root"><div class="wrap">
 
-<span class="eyebrow">Prototype v20260607·1944 · 52 × 100 · Hover + click · JS notes</span>
-<h1 class="title">A century, <em>one week at a time.</em></h1>
-<p class="lead">5,200 cells spanning one hundred years. Hover to preview. Click any cell to add or view a note.</p>
+<span class="eyebrow" id="eyebrow">Prototype v20260607·2031 · 52 × 100 · Notes</span>
+<h1 class="title">A life, <em>one week at a time.</em></h1>
+<p class="lead">Hover to preview any week. Click to add or read a note.</p>
 
 <div class="meta">
-  <div class="meta-item"><span class="k">Span</span><span class="v">02026<small>–</small>02125</span></div>
-  <div class="meta-item"><span class="k">Weeks</span><span class="v">5,200</span></div>
-  <div class="meta-item"><span class="k">Notes</span><span class="v" id="noteCount">0<small>saved</small></span></div>
+  <div class="meta-item">
+    <span class="k">Span</span>
+    <span class="v" id="spanDisplay"></span>
+  </div>
+  <div class="meta-item">
+    <span class="k">
+      Years
+      <button class="edit-span-btn" id="editSpanBtn">edit</button>
+    </span>
+    <span class="v" id="yearsDisplay"></span>
+    <div class="span-form" id="spanForm">
+      <input class="span-input" id="spanInput" type="number" min="1" max="999">
+      <span class="span-hint">years</span>
+      <button class="span-ok" id="spanOk">Apply</button>
+      <button class="span-x"  id="spanCancel">✕</button>
+    </div>
+  </div>
+  <div class="meta-item">
+    <span class="k">Weeks</span>
+    <span class="v" id="weeksDisplay"></span>
+  </div>
+  <div class="meta-item">
+    <span class="k">Notes</span>
+    <span class="v" id="noteCount">0<small>saved</small></span>
+  </div>
 </div>
 
 <div class="container">
@@ -220,9 +238,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 
 </div></div>
 
-<!-- Floating lens — JS-positioned above the cursor; pointer-events:none
-     so the cursor always reaches the native .c element beneath it.
-     The lens is the "magnified" info panel for the hovered cell.      -->
+<!-- Floating lens -->
 <div class="lens" id="lens">
   <div class="lens-head">
     <span class="lens-week" id="lensWeek"></span>
@@ -246,8 +262,10 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 
     <!-- View state -->
     <div id="modeView" style="display:none">
-      <p class="note-display" id="viewNote"></p>
-      <a class="link-display" id="viewLink" target="_blank" rel="noopener" style="display:none"></a>
+      <div class="modal-body">
+        <p class="note-display" id="viewNote"></p>
+        <a class="link-display" id="viewLink" target="_blank" rel="noopener" style="display:none"></a>
+      </div>
       <div class="modal-actions">
         <button class="btn-edit" id="btnEdit">Edit note</button>
         <button class="btn-done" id="btnDone">Close</button>
@@ -256,10 +274,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 
     <!-- Edit state -->
     <div id="modeEdit">
-      <label class="modal-lbl" for="modalText">Note</label>
-      <textarea class="modal-field" id="modalText" placeholder="What happened this week?"></textarea>
-      <label class="modal-lbl" for="modalUrl">Link (optional)</label>
-      <input  class="modal-field" id="modalUrl" type="url" placeholder="https://...">
+      <div class="modal-body">
+        <label class="modal-lbl" for="modalText">Note</label>
+        <textarea class="modal-field" id="modalText" placeholder="What happened this week?"></textarea>
+        <label class="modal-lbl" for="modalUrl">Link (optional)</label>
+        <input  class="modal-field" id="modalUrl" type="url" placeholder="https://...">
+      </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="modalCancel">Cancel</button>
         <button class="btn-save"   id="modalSave">Save note</button>
@@ -272,7 +292,14 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 (function () {
   'use strict';
 
-  var YEARS = 100, WEEKS = 52, START_YEAR = 2026, STORE = 'lg-notes-v1';
+  var WEEKS = 52, START_YEAR = 2026, STORE = 'lg-notes-v1', STORE_YEARS = 'lg-years-v1';
+
+  /* ── Load saved span (persists across sessions) ───────────────── */
+  var YEARS = 100;
+  try {
+    var sy = parseInt(localStorage.getItem(STORE_YEARS), 10);
+    if (sy >= 1 && sy <= 999) YEARS = sy;
+  } catch (e) {}
 
   /* ── ISO week ─────────────────────────────────────────────────── */
   function isoWeek(d) {
@@ -284,36 +311,86 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   }
   var today = isoWeek(new Date());
 
-  /* ── Axes ─────────────────────────────────────────────────────── */
+  /* ── Axis X (static, built once) ─────────────────────────────── */
   var axisX = document.getElementById('axisX');
   for (var wx = 1; wx <= WEEKS; wx++) {
-    var sx = document.createElement('span');
-    sx.textContent = (wx === 1 || wx % 5 === 0 || wx === WEEKS) ? wx : '';
-    axisX.appendChild(sx);
-  }
-  var axisY = document.getElementById('axisY');
-  for (var yx = 0; yx < YEARS; yx++) {
-    var sy = document.createElement('span');
-    // Label every 10th year; leave others blank to avoid crowding
-    sy.textContent = (yx % 10 === 0) ? '0' + (START_YEAR + yx) : '';
-    axisY.appendChild(sy);
+    var sxx = document.createElement('span');
+    sxx.textContent = (wx === 1 || wx % 5 === 0 || wx === WEEKS) ? wx : '';
+    axisX.appendChild(sxx);
   }
 
-  /* ── Grid ─────────────────────────────────────────────────────── */
-  var grid = document.getElementById('grid');
-  for (var yi = 0; yi < YEARS; yi++) {
-    var year = START_YEAR + yi;
-    var row  = document.createElement('div');
-    row.className = 'row';
-    for (var wi = 1; wi <= WEEKS; wi++) {
-      var a = document.createElement('a');
-      a.className = 'c';
-      a.dataset.d = 'Week ' + wi + ', 0' + year;
-      if (wi === today.week && year === today.year) a.classList.add('is-today');
-      row.appendChild(a);
+  /* ── Build / Rebuild grid ─────────────────────────────────────── */
+  var axisY = document.getElementById('axisY');
+  var grid  = document.getElementById('grid');
+
+  function buildGrid() {
+    // Axis Y — label density adapts to span length
+    while (axisY.firstChild) axisY.removeChild(axisY.firstChild);
+    axisY.style.gridTemplateRows = 'repeat(' + YEARS + ',1fr)';
+    var labelEvery = YEARS <= 15 ? 1 : YEARS <= 40 ? 5 : 10;
+    for (var yx = 0; yx < YEARS; yx++) {
+      var sy2 = document.createElement('span');
+      sy2.textContent = (yx % labelEvery === 0) ? '0' + (START_YEAR + yx) : '';
+      axisY.appendChild(sy2);
     }
-    grid.appendChild(row);
+
+    // Grid rows
+    while (grid.firstChild) grid.removeChild(grid.firstChild);
+    for (var yi = 0; yi < YEARS; yi++) {
+      var year = START_YEAR + yi;
+      var row  = document.createElement('div');
+      row.className = 'row';
+      for (var wi = 1; wi <= WEEKS; wi++) {
+        var a = document.createElement('a');
+        a.className = 'c';
+        a.dataset.d = 'Week ' + wi + ', 0' + year;
+        if (wi === today.week && year === today.year) a.classList.add('is-today');
+        row.appendChild(a);
+      }
+      grid.appendChild(row);
+    }
+
+    // Update meta displays
+    var endYear = START_YEAR + YEARS - 1;
+    document.getElementById('spanDisplay').innerHTML  = '0' + START_YEAR + '<small>–</small>0' + endYear;
+    document.getElementById('yearsDisplay').textContent = YEARS;
+    document.getElementById('weeksDisplay').textContent = (YEARS * WEEKS).toLocaleString();
+
+    refreshCells(loadNotes());
   }
+
+  /* ── Span editor ──────────────────────────────────────────────── */
+  var editSpanBtn = document.getElementById('editSpanBtn');
+  var spanForm    = document.getElementById('spanForm');
+  var spanInput   = document.getElementById('spanInput');
+  var spanOk      = document.getElementById('spanOk');
+  var spanCancel  = document.getElementById('spanCancel');
+
+  editSpanBtn.addEventListener('click', function () {
+    spanInput.value = YEARS;
+    spanForm.classList.add('on');
+    spanInput.focus();
+    spanInput.select();
+  });
+  spanCancel.addEventListener('click', function () {
+    spanForm.classList.remove('on');
+  });
+  function applySpan() {
+    var v = parseInt(spanInput.value, 10);
+    if (v >= 1 && v <= 999) {
+      YEARS = v;
+      try { localStorage.setItem(STORE_YEARS, YEARS); } catch (e) {}
+      spanForm.classList.remove('on');
+      buildGrid();
+    } else {
+      spanInput.focus();
+    }
+  }
+  spanOk.addEventListener('click', applySpan);
+  spanInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') applySpan();
+    if (e.key === 'Escape') spanForm.classList.remove('on');
+  });
 
   /* ── localStorage ─────────────────────────────────────────────── */
   function loadNotes() {
@@ -342,17 +419,15 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   var lensNoteTxt = document.getElementById('lensNoteTxt');
   var lensLinkTxt = document.getElementById('lensLinkTxt');
   var lensCta     = document.getElementById('lensCta');
-
   var currentCell = null;
-  var pinnedCell  = null;  // cell highlighted while cursor is in lens area
-  var LENS_GAP    = 16;    // px between lens triangle tip and hovered cell
+  var pinnedCell  = null;
+  var LENS_GAP    = 16;
 
   function updateLens(cell) {
     var key   = cell.dataset.d;
     var parts = key.split(', ');
     lensWeek.textContent = parts[0];
     lensYear.textContent = parts[1];
-
     var note = loadNotes()[key];
     if (note && (note.text || note.url)) {
       lensPreview.classList.add('on');
@@ -372,7 +447,6 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   }
 
   function positionLens(mx, my) {
-    // Show lens without display:flex yet so we can measure it
     var lh = lens.offsetHeight || 140;
     var lw = lens.offsetWidth  || 180;
     var top  = my - lh - LENS_GAP;
@@ -384,52 +458,28 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   }
 
   function setPinned(cell) {
-    if (pinnedCell && pinnedCell !== cell) {
-      pinnedCell.classList.remove('pinned');
-    }
-    if (cell) {
-      cell.classList.add('pinned');
-    }
+    if (pinnedCell && pinnedCell !== cell) pinnedCell.classList.remove('pinned');
+    if (cell) cell.classList.add('pinned');
     pinnedCell = cell;
   }
 
-  function clearPinned() {
-    if (pinnedCell) pinnedCell.classList.remove('pinned');
-    pinnedCell = null;
-  }
-
-  // mousemove on document — lens has pointer-events:none so e.target
-  // is always the element the cursor physically reaches (.c cells or
-  // the page background). When cursor enters the lens area the browser
-  // sees through it to the cell or background beneath.
   document.addEventListener('mousemove', function (e) {
-    var t    = e.target;
-
-    // If cursor reaches an interactive child of the lens (the link),
-    // keep the lens stable on the current cell.
+    var t = e.target;
     if (t === lensLinkTxt) return;
-
     var cell = t && t.closest ? t.closest('.c') : null;
-
     if (cell) {
-      if (cell !== currentCell) {
-        currentCell = cell;
-        updateLens(cell);
-      }
-      // Keep .pinned on this cell so the highlight persists if cursor
-      // drifts into the lens area above.
+      if (cell !== currentCell) { currentCell = cell; updateLens(cell); }
       setPinned(cell);
       positionLens(e.clientX, e.clientY);
       lens.classList.add('on');
     } else {
-      // Cursor left all cells — hide lens and remove pinned highlight
       lens.classList.remove('on');
-      clearPinned();
+      if (pinnedCell) { pinnedCell.classList.remove('pinned'); pinnedCell = null; }
       currentCell = null;
     }
   });
 
-  /* ── Click any cell → open modal ─────────────────────────────── */
+  /* ── Click cell → modal ───────────────────────────────────────── */
   grid.addEventListener('click', function (e) {
     var cell = e.target.closest ? e.target.closest('.c') : null;
     if (cell) openModal(cell.dataset.d);
@@ -452,8 +502,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
     modalKey = key;
     hadNote  = !!(note && (note.text || note.url));
     modalWk.textContent = key;
-    if (hadNote) { showView(note); }
-    else         { showEdit({}); }
+    if (hadNote) { showView(note); } else { showEdit({}); }
     modalBg.classList.add('open');
   }
 
@@ -493,21 +542,18 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
     closeModal();
   }
 
-  document.getElementById('btnEdit').addEventListener('click', function () {
-    showEdit(loadNotes()[modalKey] || {});
-  });
-  document.getElementById('btnDone').addEventListener('click',   closeModal);
+  document.getElementById('btnEdit').addEventListener('click', function () { showEdit(loadNotes()[modalKey] || {}); });
+  document.getElementById('btnDone').addEventListener('click',    closeModal);
   document.getElementById('modalClose').addEventListener('click', closeModal);
-  document.getElementById('modalSave').addEventListener('click',   saveNote);
+  document.getElementById('modalSave').addEventListener('click',  saveNote);
   document.getElementById('modalCancel').addEventListener('click', function () {
-    if (hadNote) { showView(loadNotes()[modalKey] || {}); }
-    else         { closeModal(); }
+    if (hadNote) { showView(loadNotes()[modalKey] || {}); } else { closeModal(); }
   });
   modalBg.addEventListener('click', function (e) { if (e.target === modalBg) closeModal(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 
   /* ── Init ─────────────────────────────────────────────────────── */
-  refreshCells(loadNotes());
+  buildGrid();
 }());
 </script>
 </body>
