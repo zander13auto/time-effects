@@ -199,13 +199,22 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 <div class="root"><div class="wrap">
 
 <span class="eyebrow" id="eyebrow">Prototype v20260607·2031 · 52 × 100 · Notes</span>
-<h1 class="title">A life, <em>one week at a time.</em></h1>
+<h1 class="title" id="mainTitle">A century, <em>one week at a time.</em></h1>
 <p class="lead">Hover to preview any week. Click to add or read a note.</p>
 
 <div class="meta">
   <div class="meta-item">
-    <span class="k">Span</span>
+    <span class="k">
+      Span
+      <button class="edit-span-btn" id="editStartBtn">edit</button>
+    </span>
     <span class="v" id="spanDisplay"></span>
+    <div class="span-form" id="startForm">
+      <input class="span-input" id="startInput" type="text" inputmode="numeric" maxlength="4" placeholder="2026">
+      <span class="span-hint">start year</span>
+      <button class="span-ok" id="startOk">Apply</button>
+      <button class="span-x"  id="startCancel">✕</button>
+    </div>
   </div>
   <div class="meta-item">
     <span class="k">
@@ -214,7 +223,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     </span>
     <span class="v" id="yearsDisplay"></span>
     <div class="span-form" id="spanForm">
-      <input class="span-input" id="spanInput" type="number" min="1" max="999">
+      <input class="span-input" id="spanInput" type="text" inputmode="numeric" maxlength="3" placeholder="100">
       <span class="span-hint">years</span>
       <button class="span-ok" id="spanOk">Apply</button>
       <button class="span-x"  id="spanCancel">✕</button>
@@ -292,13 +301,17 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 (function () {
   'use strict';
 
-  var WEEKS = 52, START_YEAR = 2026, STORE = 'lg-notes-v1', STORE_YEARS = 'lg-years-v1';
+  var WEEKS = 52, START_YEAR = 2026, STORE = 'lg-notes-v1', STORE_YEARS = 'lg-years-v1', STORE_START = 'lg-start-v1';
 
   /* ── Load saved span (persists across sessions) ───────────────── */
   var YEARS = 100;
   try {
     var sy = parseInt(localStorage.getItem(STORE_YEARS), 10);
     if (sy >= 1 && sy <= 999) YEARS = sy;
+  } catch (e) {}
+  try {
+    var ss = parseInt(localStorage.getItem(STORE_START), 10);
+    if (ss >= 1 && ss <= 9999) START_YEAR = ss;
   } catch (e) {}
 
   /* ── ISO week ─────────────────────────────────────────────────── */
@@ -310,6 +323,25 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     return { week: w, year: y };
   }
   var today = isoWeek(new Date());
+
+  /* ── Dynamic title ───────────────────────────────────────────── */
+  function getTitle(y) {
+    var tail = ', <em>one week at a time.</em>';
+    if (y === 999) return 'A millennia' + tail;
+    if (y % 100 === 0) {
+      var c = y / 100;
+      return (c === 1 ? 'A century' : c + ' centuries') + tail;
+    }
+    if (y >= 60 && y <= 99) return 'A life' + tail;
+    if (y % 10 === 0) {
+      var d = y / 10;
+      return (d === 1 ? 'A decade' : d + ' decades') + tail;
+    }
+    return y + ' years' + tail;
+  }
+  function updateTitle() {
+    document.getElementById('mainTitle').innerHTML = getTitle(YEARS);
+  }
 
   /* ── Axis X (static, built once) ─────────────────────────────── */
   var axisX = document.getElementById('axisX');
@@ -356,6 +388,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     document.getElementById('yearsDisplay').textContent = YEARS;
     document.getElementById('weeksDisplay').textContent = (YEARS * WEEKS).toLocaleString();
 
+    updateTitle();
     refreshCells(loadNotes());
   }
 
@@ -390,6 +423,45 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   spanInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') applySpan();
     if (e.key === 'Escape') spanForm.classList.remove('on');
+  });
+  // Enforce max 3 digits; block non-numeric characters
+  spanInput.addEventListener('input', function () {
+    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3);
+  });
+
+  /* ── Start year editor ───────────────────────────────────────── */
+  var editStartBtn = document.getElementById('editStartBtn');
+  var startForm    = document.getElementById('startForm');
+  var startInput   = document.getElementById('startInput');
+  var startOk      = document.getElementById('startOk');
+  var startCancel  = document.getElementById('startCancel');
+
+  editStartBtn.addEventListener('click', function () {
+    startInput.value = START_YEAR;
+    startForm.classList.add('on');
+    startInput.focus();
+    startInput.select();
+  });
+  startCancel.addEventListener('click', function () { startForm.classList.remove('on'); });
+  // Enforce max 4 digits; block non-numeric characters
+  startInput.addEventListener('input', function () {
+    this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4);
+  });
+  function applyStart() {
+    var v = parseInt(startInput.value, 10);
+    if (v >= 1 && v <= 9999) {
+      START_YEAR = v;
+      try { localStorage.setItem(STORE_START, START_YEAR); } catch (e) {}
+      startForm.classList.remove('on');
+      buildGrid();
+    } else {
+      startInput.focus();
+    }
+  }
+  startOk.addEventListener('click', applyStart);
+  startInput.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') applyStart();
+    if (e.key === 'Escape') startForm.classList.remove('on');
   });
 
   /* ── localStorage ─────────────────────────────────────────────── */
