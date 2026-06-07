@@ -180,6 +180,9 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .note-display { font-size: 15px; color: #dcdcde; line-height: 1.65; margin: 0 0 12px; white-space: pre-wrap; font-family: var(--ss); }
 .link-display { display: block; font-size: 14px; color: var(--ac); text-decoration: underline; margin-bottom: 8px; word-break: break-all; }
 .link-display:hover { color: #f0cfa0; }
+.wp-link { display: block; font-size: 14px; color: var(--ac); text-decoration: none; padding: 5px 0; border-bottom: 1px solid rgba(232,192,140,.1); line-height: 1.4; }
+.wp-link:last-child { border-bottom: none; }
+.wp-link:hover { color: #f0cfa0; text-decoration: underline; }
 
 /* Edit mode content */
 .modal-lbl   { display: block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: rgba(232,192,140,.65); font-weight: 600; margin-bottom: 7px; }
@@ -704,8 +707,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 
   function entryLineCount(note) {
     if (!note) return 0;
+    if (note.links && note.links.length) return note.links.length;
     if (!note.text) return note.url ? 1 : 0;
     return note.text.split('\n').filter(function (l) { return l.trim(); }).length || 1;
+  }
+  function noteHasContent(note) {
+    return !!(note && (note.text || note.url || (note.links && note.links.length)));
   }
 
   function refreshCells(notes) {
@@ -722,8 +729,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     for (var i = 0; i < cells.length; i++) {
       var cell    = cells[i];
       var note    = notes[cell.dataset.d];
-      var hasNote = !!(note && (note.text || note.url));
-      var hasLink = !!(note && note.url);
+      var hasNote = noteHasContent(note);
+      var hasLink = !!(note && (note.url || (note.links && note.links.length)));
       cell.classList.toggle('has-note', hasNote);
       cell.classList.toggle('has-link', hasLink);
       if (hasNote) {
@@ -739,7 +746,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 
     var ec = document.getElementById('entryCount');
     if (ec) {
-      var filled = nkeys.filter(function(k){ var n=notes[k]; return n&&(n.text||n.url); }).length;
+      var filled = nkeys.filter(function(k){ return noteHasContent(notes[k]); }).length;
       ec.innerHTML = filled + '<small>saved</small>';
     }
     var rb = document.getElementById('resetBtn');
@@ -768,15 +775,20 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     document.getElementById('lensDates').textContent = formatWeekRange(yn, wn);
     // (Google Cal URL set in openModal)
     var note = loadNotes()[key];
-    if (note && (note.text || note.url)) {
+    if (noteHasContent(note)) {
       lensPreview.classList.add('on');
-      lensNoteTxt.textContent = note.text || '';
-      if (note.url) {
-        lensLinkTxt.href = note.url;
-        lensLinkTxt.textContent = '↗ ' + note.url.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0];
-        lensLinkTxt.style.display = '';
-      } else {
+      if (note.links && note.links.length) {
+        lensNoteTxt.textContent = note.links.map(function (l) { return l.title; }).join('\n');
         lensLinkTxt.style.display = 'none';
+      } else {
+        lensNoteTxt.textContent = note.text || '';
+        if (note.url) {
+          lensLinkTxt.href = note.url;
+          lensLinkTxt.textContent = '↗ ' + note.url.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0];
+          lensLinkTxt.style.display = '';
+        } else {
+          lensLinkTxt.style.display = 'none';
+        }
       }
       lensCta.textContent = 'click to see entry · or see this week in Google Cal';
     } else {
@@ -839,7 +851,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   function openModal(key) {
     var note = loadNotes()[key];
     modalKey = key;
-    hadNote  = !!(note && (note.text || note.url));
+    hadNote  = noteHasContent(note);
     var mkp = key.split(', ');
     var mwn = parseInt(mkp[0].replace('Week ', ''), 10);
     var myn = parseInt(mkp[1], 10);
@@ -857,21 +869,37 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     modeEdit.style.display = 'none';
     document.getElementById('viewActionsA').style.display = '';
     document.getElementById('viewActionsB').style.display = 'none';
-    viewNote.textContent = note.text || '';
-    if (note.url) {
-      viewLink.href = note.url;
-      viewLink.textContent = note.url;
-      viewLink.style.display = '';
-    } else {
+    viewNote.innerHTML = '';
+    if (note.links && note.links.length) {
+      for (var li = 0; li < note.links.length; li++) {
+        var a = document.createElement('a');
+        a.href = note.links[li].url || '#';
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.className = 'wp-link';
+        a.textContent = note.links[li].title;
+        viewNote.appendChild(a);
+      }
       viewLink.style.display = 'none';
+    } else {
+      viewNote.textContent = note.text || '';
+      if (note.url) {
+        viewLink.href = note.url;
+        viewLink.textContent = note.url;
+        viewLink.style.display = '';
+      } else {
+        viewLink.style.display = 'none';
+      }
     }
   }
 
   function showEdit(note) {
     modeView.style.display = 'none';
     modeEdit.style.display = '';
-    modalText.value = note.text || '';
-    modalUrl.value  = note.url  || '';
+    modalText.value = note.links && note.links.length
+      ? note.links.map(function (l) { return l.title; }).join('\n')
+      : (note.text || '');
+    modalUrl.value  = (note.links && note.links[0] ? note.links[0].url : '') || note.url || '';
     setTimeout(function () { modalText.focus(); }, 40);
   }
 
@@ -935,6 +963,13 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     return (sp > 42 ? cut.substring(0, sp) : cut) + '…';
   }
 
+  function decodeHtml(s) {
+    if (!s) return '';
+    var ta = document.createElement('textarea');
+    ta.innerHTML = s.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    return ta.value.trim();
+  }
+
   /* ── ICS parser ───────────────────────────────────────────────── */
   function parseICS(text) {
     // Normalize line endings, then unfold continuation lines (RFC 5545)
@@ -978,6 +1013,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   var importBackBtn = document.getElementById('importBackBtn');
   var importGroups  = {};
   var importUrlMap  = {};   // key → first URL (populated by WP import)
+  var importWpLinks = {};   // key → [{title,url}] (populated by WP import)
   var importParsed  = 0;
   var importStepNum = 1;
   var importNewW    = 0, importExistW = 0;
@@ -1049,13 +1085,15 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     var added  = 0, updated = 0, skipped = 0;
     for (var key in importGroups) {
       var titles   = importGroups[key].join('\n');
-      var hasExist = !!(notes[key] && (notes[key].text || notes[key].url));
+      var hasExist = noteHasContent(notes[key]);
+      var wpLinks  = importWpLinks[key];
       var firstUrl = importUrlMap[key] || '';
+      var newNote  = wpLinks ? { links: wpLinks } : { text: titles, url: firstUrl };
       if (hasExist) {
-        if (mode === 'overwrite') { notes[key] = { text: titles, url: firstUrl || notes[key].url || '' }; updated++; }
+        if (mode === 'overwrite') { notes[key] = newNote; updated++; }
         else { skipped++; }
       } else {
-        notes[key] = { text: titles, url: firstUrl }; added++;
+        notes[key] = newNote; added++;
       }
     }
     saveNotes(notes);
@@ -1070,7 +1108,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 
   function closeImportModal() {
     importBg.classList.remove('open');
-    importGroups = {}; importUrlMap = {}; importStepNum = 1;
+    importGroups = {}; importUrlMap = {}; importWpLinks = {}; importStepNum = 1;
   }
 
   /* ── WordPress Blog import ────────────────────────────────────── */
@@ -1089,21 +1127,19 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   }
 
   function wpPostsToGroups(posts) {
-    var groups = {}, urls = {};
+    var groups = {}, wpLinks = {};
     for (var i = 0; i < posts.length; i++) {
       var post  = posts[i];
       var d     = new Date(post.date_gmt ? post.date_gmt + 'Z' : post.date);
       var iw    = isoWeek(d);
       var key   = 'Week ' + iw.week + ', 0' + iw.year;
-      var title = post.title && post.title.rendered
-        ? post.title.rendered.replace(/<[^>]+>/g, '').replace(/&amp;/g,'&').replace(/&#8217;/g,"'").replace(/&#8216;/g,"'").replace(/&hellip;/g,'…').trim()
-        : '(untitled)';
-      var exc   = post.excerpt && post.excerpt.rendered ? truncDesc(post.excerpt.rendered) : '';
-      var line  = exc ? title + '\n' + exc : title;
-      if (!groups[key]) { groups[key] = []; urls[key] = post.link || ''; }
-      groups[key].push(line);
+      var title = decodeHtml(post.title && post.title.rendered ? post.title.rendered : '(untitled)');
+      var link  = post.link || '';
+      if (!groups[key]) { groups[key] = []; wpLinks[key] = []; }
+      groups[key].push(title);
+      wpLinks[key].push({ title: title, url: link });
     }
-    return { groups: groups, urls: urls };
+    return { groups: groups, wpLinks: wpLinks };
   }
 
   function wpFetchPage(baseUrl, page, accPosts, totalPages, onDone) {
@@ -1155,7 +1191,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         return;
       }
       var result = wpPostsToGroups(posts);
-      importUrlMap = result.urls;
+      importUrlMap  = {};
+      importWpLinks = result.wpLinks;
       closeWpBlogModal();
       document.getElementById('importTitle').textContent = 'Import from WordPress';
       openImportModal(result.groups, posts.length);
@@ -1285,7 +1322,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       var cell = cells[i];
       if (!q) { cell.classList.remove('search-match'); continue; }
       var n   = notes[cell.dataset.d] || {};
-      var hay = (cell.dataset.d + ' ' + (n.text || '') + ' ' + (n.url || '')).toLowerCase();
+      var linkTxt = (n.links || []).map(function (l) { return l.title + ' ' + l.url; }).join(' ');
+      var hay = (cell.dataset.d + ' ' + (n.text || '') + ' ' + (n.url || '') + ' ' + linkTxt).toLowerCase();
       cell.classList.toggle('search-match', hay.indexOf(q) >= 0);
     }
   }
