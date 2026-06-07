@@ -264,7 +264,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       <button class="cal-btn" id="importBtn">↑ Import CSV</button>
       <button class="cal-btn" id="exportBtn">↓ Export CSV</button>
     </div>
-    <input type="file" id="importFile" accept=".csv" style="display:none">
+    <input type="file" id="importFile" accept=".csv,.ics,text/calendar" style="display:none">
   </div>
   <div class="meta-reset">
     <button class="reset-btn" id="resetBtn" style="display:none" title="Clear all saved entries">↺ Reset entries</button>
@@ -406,6 +406,13 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   }
   var today = isoWeek(new Date());
 
+  /* ── Eyebrow (version + dynamic span) ───────────────────────── */
+  var EYEBROW_VER = 'Prototype v20260607·2031';
+  function updateEyebrow() {
+    var el = document.getElementById('eyebrow');
+    if (el) el.textContent = EYEBROW_VER + ' · ' + YEARS + ' years × ' + WEEKS + ' weeks';
+  }
+
   /* ── Dynamic title ───────────────────────────────────────────── */
   function getTitle(y) {
     var tail = ', <em>one week at a time.</em>';
@@ -471,6 +478,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     document.getElementById('weeksDisplay').textContent = (YEARS * WEEKS).toLocaleString();
 
     updateTitle();
+    updateEyebrow();
     refreshCells(loadNotes());
   }
 
@@ -738,78 +746,124 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   }
   function padMD(n) { return n < 10 ? '0' + n : '' + n; }
 
-  /* ── Import calendar CSV ──────────────────────────────────────── */
+  /* ── ICS parser ───────────────────────────────────────────────── */
+  function parseICS(text) {
+    // Normalize line endings, then unfold continuation lines (RFC 5545)
+    text = text.replace(/\r\n|\r/g, '\n').replace(/\n[ \t]/g, '');
+    var lines   = text.split('\n');
+    var events  = [];
+    var inEvent = false;
+    var cur     = {};
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i];
+      if (line === 'BEGIN:VEVENT')     { inEvent = true;  cur = {}; continue; }
+      if (line === 'END:VEVENT')       { inEvent = false; if (cur.summary && cur.dt) events.push(cur); continue; }
+      if (!inEvent) continue;
+      var colon = line.indexOf(':');
+      if (colon < 0) continue;
+      var prop = line.substring(0, colon).toUpperCase();
+      var val  = line.substring(colon + 1);
+      if (prop === 'SUMMARY') {
+        cur.summary = val.replace(/\\,/g,',').replace(/\\n/g,'\n').replace(/\\\\/g,'\\').trim();
+      } else if (prop === 'DTSTART' || prop.indexOf('DTSTART;') === 0) {
+        // Strip time portion — we only need the date (YYYYMMDD)
+        var dateOnly = val.replace(/T.*$/, '');
+        if (dateOnly.length >= 8) {
+          var dy = parseInt(dateOnly.slice(0,4), 10);
+          var dm = parseInt(dateOnly.slice(4,6), 10) - 1;
+          var dd = parseInt(dateOnly.slice(6,8), 10);
+          cur.dt = new Date(Date.UTC(dy, dm, dd));
+        }
+      }
+    }
+    return events;
+  }
+
+  /* ── Import calendar CSV or ICS ───────────────────────────────── */
   document.getElementById('importBtn').addEventListener('click', function () {
     document.getElementById('importFile').click();
   });
+
+  function importGroupsToEntries(groups, parsed) {
+    if (parsed === 0) { alert('No valid events found in file.'); return; }
+    var notes  = loadNotes();
+    var added  = 0, merged = 0;
+    for (var key in groups) {
+      var titles = groups[key].join('\n');
+      if (notes[key] && (notes[key].text || notes[key].url)) {
+        notes[key].text = (notes[key].text ? notes[key].text + '\n' + titles : titles);
+        merged++;
+      } else {
+        notes[key] = { text: titles, url: '' };
+        added++;
+      }
+    }
+    saveNotes(notes);
+    refreshCells(notes);
+    alert('Imported ' + parsed + ' events across ' + (added + merged) + ' weeks\n(' + added + ' new, ' + merged + ' merged into existing entries).');
+    document.getElementById('importFile').value = '';
+  }
+
   document.getElementById('importFile').addEventListener('change', function () {
     var file = this.files[0];
     if (!file) return;
     var reader = new FileReader();
+    var isICS  = /\.ics$/i.test(file.name) || file.type === 'text/calendar';
+
     reader.onload = function (ev) {
-      var lines = ev.target.result.split(/\r?\n/);
-      if (lines.length < 2) { alert('No data found in CSV.'); return; }
-
-      // Detect columns (case-insensitive header scan)
-      var headers = parseCSVLine(lines[0]);
-      var colSubject = -1, colStart = -1;
-      for (var h = 0; h < headers.length; h++) {
-        var hdr = headers[h].trim().toLowerCase();
-        if (hdr === 'subject')     colSubject = h;
-        if (hdr === 'start date')  colStart   = h;
-      }
-      if (colSubject < 0 || colStart < 0) {
-        alert('CSV must have "Subject" and "Start Date" columns.\nSupported: Google Calendar export, Outlook export.');
-        return;
-      }
-
-      // Group event titles by ISO week
+      var text   = ev.target.result;
       var groups = {};
-      var parsed = 0, skipped = 0;
-      for (var i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        var fields  = parseCSVLine(lines[i]);
-        var subject = (fields[colSubject] || '').trim();
-        var dateStr = (fields[colStart]   || '').trim();
-        if (!subject || !dateStr) { skipped++; continue; }
+      var parsed = 0;
 
-        // Accept MM/DD/YYYY (GCal/Outlook) or YYYY-MM-DD (ISO)
-        var dt = null;
-        var mdy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-        var iso = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-        if (mdy) dt = new Date(Date.UTC(+mdy[3], +mdy[1]-1, +mdy[2]));
-        else if (iso) dt = new Date(Date.UTC(+iso[1], +iso[2]-1, +iso[3]));
-        if (!dt || isNaN(dt.getTime())) { skipped++; continue; }
-
-        var iw  = isoWeek(dt);
-        var key = 'Week ' + iw.week + ', 0' + iw.year;
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(subject);
-        parsed++;
-      }
-
-      if (parsed === 0) {
-        alert('No valid events found.\nCheck that Start Date is MM/DD/YYYY (Google Calendar / Outlook) or YYYY-MM-DD.');
-        return;
-      }
-
-      // Merge into stored entries
-      var notes  = loadNotes();
-      var added  = 0, merged = 0;
-      for (var key2 in groups) {
-        var titles = groups[key2].join('\n');
-        if (notes[key2] && (notes[key2].text || notes[key2].url)) {
-          notes[key2].text = (notes[key2].text ? notes[key2].text + '\n' + titles : titles);
-          merged++;
-        } else {
-          notes[key2] = { text: titles, url: '' };
-          added++;
+      if (isICS) {
+        /* ── ICS branch ── */
+        var evts = parseICS(text);
+        for (var i = 0; i < evts.length; i++) {
+          var ev2 = evts[i];
+          if (!ev2.dt || isNaN(ev2.dt.getTime())) continue;
+          var iw  = isoWeek(ev2.dt);
+          var key = 'Week ' + iw.week + ', 0' + iw.year;
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(ev2.summary);
+          parsed++;
         }
+        importGroupsToEntries(groups, parsed);
+
+      } else {
+        /* ── CSV branch ── */
+        var lines = text.split(/\r?\n/);
+        if (lines.length < 2) { alert('No data found in CSV.'); return; }
+        var headers    = parseCSVLine(lines[0]);
+        var colSubject = -1, colStart = -1;
+        for (var h = 0; h < headers.length; h++) {
+          var hdr = headers[h].trim().toLowerCase();
+          if (hdr === 'subject')    colSubject = h;
+          if (hdr === 'start date') colStart   = h;
+        }
+        if (colSubject < 0 || colStart < 0) {
+          alert('CSV must have "Subject" and "Start Date" columns.\nSupported formats: Google Calendar CSV, Outlook CSV.');
+          return;
+        }
+        for (var j = 1; j < lines.length; j++) {
+          if (!lines[j].trim()) continue;
+          var fields  = parseCSVLine(lines[j]);
+          var subject = (fields[colSubject] || '').trim();
+          var dateStr = (fields[colStart]   || '').trim();
+          if (!subject || !dateStr) continue;
+          var dt2 = null;
+          var mdy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+          var isoD = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (mdy)  dt2 = new Date(Date.UTC(+mdy[3],  +mdy[1]-1,  +mdy[2]));
+          else if (isoD) dt2 = new Date(Date.UTC(+isoD[1], +isoD[2]-1, +isoD[3]));
+          if (!dt2 || isNaN(dt2.getTime())) continue;
+          var iw2  = isoWeek(dt2);
+          var key2 = 'Week ' + iw2.week + ', 0' + iw2.year;
+          if (!groups[key2]) groups[key2] = [];
+          groups[key2].push(subject);
+          parsed++;
+        }
+        importGroupsToEntries(groups, parsed);
       }
-      saveNotes(notes);
-      refreshCells(notes);
-      alert('Imported ' + parsed + ' events across ' + (added + merged) + ' weeks\n(' + added + ' new weeks, ' + merged + ' merged into existing entries).');
-      document.getElementById('importFile').value = '';
     };
     reader.readAsText(file);
   });
