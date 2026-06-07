@@ -301,6 +301,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   <div class="meta-item">
     <span class="k">Calendar</span>
     <div class="cal-btns">
+      <button class="cal-btn" id="wpBlogBtn" data-tip="Fetch posts from a public WordPress blog">WP Blog</button>
       <button class="cal-btn" id="importBtn" data-tip="Accepts .ics (iCalendar) · .csv (Google Cal, Outlook)">↑ Import</button>
       <button class="cal-btn" id="exportBtn" data-tip="Download CSV file (compatible with Google/Microsoft)">↓ Export</button>
     </div>
@@ -318,11 +319,11 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   <div class="grid"   id="grid"></div>
 </div>
 
-</div></div>
-
 <div class="grid-footer">
   <button class="reset-btn" id="resetBtn" style="display:none" title="Clear all saved entries">↺ Reset entries</button>
 </div>
+
+</div></div>
 
 <!-- Floating lens -->
 <div class="lens" id="lens">
@@ -421,6 +422,28 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       <div class="modal-actions">
         <button class="btn-cancel" id="importBackBtn">Cancel</button>
         <button class="btn-save"   id="importGoBtn">Continue →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- WP Blog modal -->
+<div class="modal-bg" id="wpBlogBg">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-head">
+      <span class="modal-wk" style="display:block;font-family:var(--sf);font-size:18px;color:var(--ac)">WordPress Blog</span>
+      <button class="modal-close" id="wpBlogClose" aria-label="Close">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;flex:1;min-height:0">
+      <div class="modal-body">
+        <p style="font-size:13px;color:rgba(232,192,140,.6);margin:0 0 14px;line-height:1.6">Enter a public WordPress blog URL to import posts as grid entries.</p>
+        <input type="url" id="wpBlogUrl" placeholder="https://example.wordpress.com"
+          style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1px solid rgba(232,192,140,.25);border-radius:4px;color:#dcdcde;font-family:var(--ss);font-size:13px;padding:8px 10px;outline:none">
+        <p id="wpBlogStatus" style="font-size:12px;color:rgba(232,192,140,.55);margin:10px 0 0;min-height:16px;line-height:1.5"></p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="wpBlogCancel">Cancel</button>
+        <button class="btn-save"   id="wpBlogFetch">Fetch Posts</button>
       </div>
     </div>
   </div>
@@ -954,6 +977,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   var importGoBtn   = document.getElementById('importGoBtn');
   var importBackBtn = document.getElementById('importBackBtn');
   var importGroups  = {};
+  var importUrlMap  = {};   // key → first URL (populated by WP import)
   var importParsed  = 0;
   var importStepNum = 1;
   var importNewW    = 0, importExistW = 0;
@@ -1026,11 +1050,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     for (var key in importGroups) {
       var titles   = importGroups[key].join('\n');
       var hasExist = !!(notes[key] && (notes[key].text || notes[key].url));
+      var firstUrl = importUrlMap[key] || '';
       if (hasExist) {
-        if (mode === 'overwrite') { notes[key] = { text: titles, url: notes[key].url || '' }; updated++; }
+        if (mode === 'overwrite') { notes[key] = { text: titles, url: firstUrl || notes[key].url || '' }; updated++; }
         else { skipped++; }
       } else {
-        notes[key] = { text: titles, url: '' }; added++;
+        notes[key] = { text: titles, url: firstUrl }; added++;
       }
     }
     saveNotes(notes);
@@ -1045,14 +1070,106 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 
   function closeImportModal() {
     importBg.classList.remove('open');
-    importGroups = {}; importStepNum = 1;
+    importGroups = {}; importUrlMap = {}; importStepNum = 1;
   }
+
+  /* ── WordPress Blog import ────────────────────────────────────── */
+  var wpBlogBg     = document.getElementById('wpBlogBg');
+  var wpBlogStatus = document.getElementById('wpBlogStatus');
+  var wpBlogUrlEl  = document.getElementById('wpBlogUrl');
+
+  function openWpBlogModal() {
+    wpBlogUrlEl.value = '';
+    wpBlogStatus.textContent = '';
+    wpBlogBg.classList.add('open');
+    setTimeout(function () { wpBlogUrlEl.focus(); }, 50);
+  }
+  function closeWpBlogModal() {
+    wpBlogBg.classList.remove('open');
+  }
+
+  function wpPostsToGroups(posts) {
+    var groups = {}, urls = {};
+    for (var i = 0; i < posts.length; i++) {
+      var post  = posts[i];
+      var d     = new Date(post.date_gmt ? post.date_gmt + 'Z' : post.date);
+      var yr    = d.getFullYear();
+      var wk    = isoWeek(d);
+      var key   = 'Week ' + wk + ', 0' + yr;
+      var title = post.title && post.title.rendered
+        ? post.title.rendered.replace(/<[^>]+>/g, '').replace(/&amp;/g,'&').replace(/&#8217;/g,"'").replace(/&#8216;/g,"'").replace(/&hellip;/g,'…').trim()
+        : '(untitled)';
+      var exc   = post.excerpt && post.excerpt.rendered ? truncDesc(post.excerpt.rendered) : '';
+      var line  = exc ? title + '\n' + exc : title;
+      if (!groups[key]) { groups[key] = []; urls[key] = post.link || ''; }
+      groups[key].push(line);
+    }
+    return { groups: groups, urls: urls };
+  }
+
+  function wpFetchPage(baseUrl, page, accPosts, totalPages, onDone) {
+    var xhr = new XMLHttpRequest();
+    var url = baseUrl + '/wp-json/wp/v2/posts?per_page=100&page=' + page +
+              '&_fields=date,date_gmt,title,link,excerpt&orderby=date&order=desc';
+    xhr.open('GET', url, true);
+    xhr.onload = function () {
+      if (xhr.status !== 200) {
+        wpBlogStatus.textContent = 'Error fetching page ' + page + ' (status ' + xhr.status + ').';
+        return;
+      }
+      var batch;
+      try { batch = JSON.parse(xhr.responseText); } catch (e) {
+        wpBlogStatus.textContent = 'Could not parse response from blog.'; return;
+      }
+      var allPosts = accPosts.concat(batch);
+      if (page === 1) {
+        totalPages = parseInt(xhr.getResponseHeader('X-WP-TotalPages'), 10) || 1;
+        var total  = parseInt(xhr.getResponseHeader('X-WP-Total'), 10) || batch.length;
+        wpBlogStatus.textContent = 'Found ' + total + ' post' + (total === 1 ? '' : 's') +
+          (totalPages > 1 ? ' — fetching all pages…' : '…');
+      }
+      if (page < totalPages) {
+        wpFetchPage(baseUrl, page + 1, allPosts, totalPages, onDone);
+      } else {
+        onDone(allPosts);
+      }
+    };
+    xhr.onerror = function () {
+      wpBlogStatus.textContent = 'Network error — check the URL and try again.';
+    };
+    xhr.send();
+  }
+
+  document.getElementById('wpBlogBtn').addEventListener('click', openWpBlogModal);
+  document.getElementById('wpBlogClose').addEventListener('click', closeWpBlogModal);
+  document.getElementById('wpBlogCancel').addEventListener('click', closeWpBlogModal);
+  wpBlogBg.addEventListener('click', function (e) { if (e.target === wpBlogBg) closeWpBlogModal(); });
+
+  document.getElementById('wpBlogFetch').addEventListener('click', function () {
+    var raw = wpBlogUrlEl.value.trim().replace(/\/$/, '');
+    if (!raw) { wpBlogStatus.textContent = 'Please enter a URL.'; return; }
+    if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+    wpBlogStatus.textContent = 'Contacting blog…';
+    wpFetchPage(raw, 1, [], 1, function (posts) {
+      if (!posts.length) {
+        wpBlogStatus.textContent = 'No posts found. Is this a WordPress site?';
+        return;
+      }
+      var result = wpPostsToGroups(posts);
+      importUrlMap = result.urls;
+      closeWpBlogModal();
+      document.getElementById('importTitle').textContent = 'Import from WordPress';
+      openImportModal(result.groups, posts.length);
+    });
+  });
 
   document.getElementById('importClose').addEventListener('click', closeImportModal);
   importBg.addEventListener('click', function (e) { if (e.target === importBg) closeImportModal(); });
 
   /* ── Import calendar CSV or ICS ───────────────────────────────── */
   document.getElementById('importBtn').addEventListener('click', function () {
+    document.getElementById('importTitle').textContent = 'Import calendar';
+    importUrlMap = {};
     document.getElementById('importFile').click();
   });
 
