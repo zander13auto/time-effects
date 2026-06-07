@@ -1093,9 +1093,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     for (var i = 0; i < posts.length; i++) {
       var post  = posts[i];
       var d     = new Date(post.date_gmt ? post.date_gmt + 'Z' : post.date);
-      var yr    = d.getFullYear();
-      var wk    = isoWeek(d);
-      var key   = 'Week ' + wk + ', 0' + yr;
+      var iw    = isoWeek(d);
+      var key   = 'Week ' + iw.week + ', 0' + iw.year;
       var title = post.title && post.title.rendered
         ? post.title.rendered.replace(/<[^>]+>/g, '').replace(/&amp;/g,'&').replace(/&#8217;/g,"'").replace(/&#8216;/g,"'").replace(/&hellip;/g,'…').trim()
         : '(untitled)';
