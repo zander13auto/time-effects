@@ -314,10 +314,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="k" id="calLabel">Calendar <span style="opacity:.45">|</span> <span id="calWpLabel" style="font-weight:400;letter-spacing:.01em">WordPress Blog data</span></span>
     <div class="cal-btns">
       <button class="cal-btn" id="wpBlogBtn" data-tip="Fetch posts from a public WordPress blog">WP Blog</button>
+      <button class="cal-btn" id="dayOneBtn" data-tip="Import Day One journal export (.txt)">Day One</button>
       <button class="cal-btn" id="importBtn" data-tip="Accepts .ics (iCalendar) · .csv (Google Cal, Outlook)">↑ Import</button>
       <button class="cal-btn" id="exportBtn" data-tip="Download CSV file (compatible with Google/Microsoft)">↓ Export</button>
     </div>
     <input type="file" id="importFile" accept=".csv,.ics,text/calendar" style="display:none">
+    <input type="file" id="dayOneFile" accept=".txt,text/plain" style="display:none">
   </div>
   <div class="meta-search">
     <span class="k">Search</span>
@@ -1369,6 +1371,100 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         }
         openImportModal(groups, parsed);
       }
+    };
+    reader.readAsText(file);
+  });
+
+  /* ── Day One import ───────────────────────────────────────────── */
+  var DO_MONTHS = { January:0, February:1, March:2, April:3, May:4, June:5,
+    July:6, August:7, September:8, October:9, November:10, December:11 };
+  var DO_TZ = { PST:-480, PDT:-420, MST:-420, MDT:-360, CST:-360, CDT:-300, EST:-300, EDT:-240 };
+
+  function parseDayOneDate(s) {
+    var m = s.match(/^(\w+)\s+(\d+),\s+(\d{4})\s+at\s+(\d+):(\d+):(\d+)\s+(AM|PM)\s+(.+)$/i);
+    if (!m) return null;
+    var mon = DO_MONTHS[m[1]];
+    if (mon === undefined) return null;
+    var hr = parseInt(m[4], 10), ampm = m[7].toUpperCase();
+    if (ampm === 'PM' && hr !== 12) hr += 12;
+    if (ampm === 'AM' && hr === 12) hr = 0;
+    var tzStr = m[8].trim(), tzOff = 0;
+    if (DO_TZ[tzStr] !== undefined) {
+      tzOff = DO_TZ[tzStr];
+    } else {
+      var gm = tzStr.match(/^GMT([+-])(\d+)$/);
+      if (gm) tzOff = (gm[1] === '+' ? 1 : -1) * parseInt(gm[2], 10) * 60;
+    }
+    return new Date(Date.UTC(parseInt(m[3],10), mon, parseInt(m[2],10), hr, parseInt(m[5],10), parseInt(m[6],10)) - tzOff * 60000);
+  }
+
+  function parseDayOneFile(text) {
+    var groups = {}, count = 0;
+    var lines = text.split('\n');
+    var entryStarts = [];
+    for (var i = 0; i < lines.length; i++) {
+      if (/^\tDate:\t/.test(lines[i])) entryStarts.push(i);
+    }
+    for (var ei = 0; ei < entryStarts.length; ei++) {
+      var sl = entryStarts[ei];
+      var el = ei + 1 < entryStarts.length ? entryStarts[ei + 1] : lines.length;
+      var dateStr = lines[sl].replace(/^\tDate:\t/, '').trim();
+      var d = parseDayOneDate(dateStr);
+      if (!d || isNaN(d.getTime())) continue;
+      // Find content start: skip metadata lines and blank lines
+      var ci = sl + 1;
+      while (ci < el) {
+        var ln = lines[ci];
+        if (/^\t(Weather|Location):\t/.test(ln) || ln.trim() === '') { ci++; }
+        else { break; }
+      }
+      var contentLines = [];
+      for (var li = ci; li < el; li++) {
+        var cl = lines[li].trimRight();
+        if (cl === '' && contentLines.length === 0) continue;  // skip leading blanks
+        contentLines.push(cl);
+      }
+      // Trim trailing blank lines
+      while (contentLines.length && contentLines[contentLines.length - 1].trim() === '') contentLines.pop();
+      if (!contentLines.length) continue;
+      // Title = first non-empty line, strip markdown heading markers
+      var title = contentLines[0].replace(/^#+\s*/, '').replace(/^\s*[-*]\s*/, '').trim();
+      if (!title) {
+        for (var ti = 1; ti < contentLines.length; ti++) {
+          title = contentLines[ti].replace(/^#+\s*/, '').replace(/^\s*[-*]\s*/, '').trim();
+          if (title) break;
+        }
+      }
+      if (!title) continue;
+      // Truncate to 80 chars
+      if (title.length > 80) {
+        var sp = title.lastIndexOf(' ', 80);
+        title = (sp > 50 ? title.substring(0, sp) : title.substring(0, 80)) + '…';
+      }
+      var iw = isoWeek(d);
+      var key = 'Week ' + iw.week + ', 0' + iw.year;
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(title);
+      count++;
+    }
+    return { groups: groups, parsed: count };
+  }
+
+  document.getElementById('dayOneBtn').addEventListener('click', function () {
+    document.getElementById('dayOneFile').value = '';
+    document.getElementById('dayOneFile').click();
+  });
+
+  document.getElementById('dayOneFile').addEventListener('change', function () {
+    var file = this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var result = parseDayOneFile(e.target.result);
+      if (!result.parsed) { alert('No Day One entries found. Make sure this is a Day One plain text export.'); return; }
+      importUrlMap = {}; importWpLinks = {};
+      document.getElementById('importTitle').textContent = 'Import from Day One';
+      openImportModal(result.groups, result.parsed, 'append');
     };
     reader.readAsText(file);
   });

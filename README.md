@@ -81,6 +81,38 @@ Microsoft Outlook CSV reference: [support.microsoft.com — Import and export Ou
 
 **Import behaviour:** events are grouped by ISO week. All event titles for a given week are joined with newlines and merged into that week's entry. Existing entry text is preserved — new titles are appended.
 
+
+#### Day One journal export (.txt)
+
+The **Day One** button imports entries from a Day One plain-text journal export. Day One is a popular journaling app for macOS and iOS.
+
+**How to export from Day One:**
+1. Open Day One on Mac.
+2. Select the journal you want to export.
+3. File → Export → Plain Text…
+4. Save as a `.txt` file (the file is typically named `Journal.txt`).
+
+**Format details:**
+
+Each entry in the exported file has a tab-indented metadata block followed by the entry content:
+
+```
+	Date:	March 7, 2025 at 12:35:18 PM GMT+8
+	Weather:	80°F
+	Location:	Bali, Indonesia
+
+# Visit to Bali Bamboo factory
+Entry text goes here…
+```
+
+- The `Date:` line uses the format `Month Day, Year at H:MM:SS AM/PM TZ`. Timezone abbreviations (PST, PDT, MST, MDT, CST, CDT, EST, EDT) and UTC offsets (GMT+8, GMT+1, etc.) are all supported.
+- `Weather:` and `Location:` metadata lines are skipped.
+- The first line of content (after stripping any Markdown `#` heading marker) becomes the entry title for that week.
+- Multiple entries in the same ISO week are stored as separate lines within that week's cell.
+- Entries with no text content are skipped.
+
+Day One app: [dayoneapp.com](https://dayoneapp.com)
+
 ---
 
 ### Export format
