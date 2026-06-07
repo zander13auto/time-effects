@@ -356,7 +356,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <div class="modal-head">
       <div style="flex:1;min-width:0">
         <span class="modal-wk" id="modalWk"></span>
-        <br><a class="modal-gcal" id="modalGcal" href="#" target="_blank" rel="noopener">↗ open week in Google Calendar</a>
+        <br><a class="modal-gcal" id="modalGcal" href="#" target="_blank" rel="noopener">↗ open this week in your Google Calendar</a>
       </div>
       <button class="modal-close" id="modalClose" aria-label="Close">×</button>
     </div>
@@ -532,7 +532,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   var today = isoWeek(new Date());
 
   /* ── Eyebrow (version + dynamic span) ───────────────────────── */
-  var EYEBROW_VER = 'Prototype 17cadc37 2026-06-07·UTC22:00';
+  var EYEBROW_VER = 'Prototype c6091dc9 2026-06-07·UTC20:23';
   function updateEyebrow() {
     var el = document.getElementById('eyebrow');
     if (el) el.textContent = EYEBROW_VER + ' · ' + YEARS + ' years × ' + WEEKS + ' weeks';
@@ -648,7 +648,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   document.getElementById('fitEntriesBtn').addEventListener('click', function () {
     var notes = loadNotes();
     var keys  = Object.keys(notes).filter(function (k) {
-      var n = notes[k]; return n && (n.text || n.url);
+      return noteHasContent(notes[k]);
     });
     if (keys.length === 0) {
       alert('No entries found.\nImport some calendar data first, then use Fit to entries.');
