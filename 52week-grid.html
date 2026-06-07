@@ -36,117 +36,117 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .axis-x { position: absolute; top: 14px; left: 64px; right: 24px; display: grid; grid-template-columns: repeat(52,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: center; }
 .axis-y { position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px; display: grid; grid-template-rows: repeat(10,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: right; padding-right: 10px; align-items: center; }
 
-/* Grid — one .row per year; sibling selectors stay within each row */
+/* Grid — one .row per year so siblings don't cross year boundaries */
 .grid { display: flex; flex-direction: column; background: rgba(232,192,140,.18); padding: 2px; border-radius: 3px; gap: 2px; }
 .row  { display: grid; grid-template-columns: repeat(52,1fr); gap: 2px; }
 
 /* ── Cell ─────────────────────────────────────────────────────────
-   .c is the hit target (native size). All visuals live in ::before.
-   pointer-events stays on the native-size element only.
+   No scaling. The ::before carries only color/glow transitions.
+   The cursor lands on the native-size .c element always.
+   Clicking anywhere on .c opens the modal.
 ──────────────────────────────────────────────────────────────────── */
 .c {
   aspect-ratio: 1/1;
-  text-decoration: none;
-  color: transparent;
-  position: relative;
-  font-size: 0;
-  line-height: 1;
   display: block;
-  cursor: default;
+  position: relative;
+  cursor: pointer;
+  font-size: 0;
 }
 .c::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  transform-origin: 50% 100%;
   background: #1d2327;
   border: 1px solid rgba(232,192,140,.1);
-  transition:
-    transform .18s cubic-bezier(.22,.61,.36,1),
-    background .15s ease,
-    border-color .15s ease,
-    box-shadow .15s ease,
-    border-radius .15s ease;
+  transition: background .1s ease, border-color .1s ease, box-shadow .1s ease;
 }
 
-.c.has-note::before          { background: rgba(232,192,140,.5); border-color: rgba(232,192,140,.8); }
+/* Persistent state dots */
+.c.has-note::before          { background: rgba(232,192,140,.45); border-color: rgba(232,192,140,.7); }
 .c.has-note.has-link::before { background: var(--ac); }
 .c.is-today::before          { outline: 2px solid var(--bl); outline-offset: -1px; }
 
-/* Fisheye hover — visual only, contained within .row */
-.c:hover               { z-index: 9; }
+/* Hover: highlight only — no scale, no fisheye neighbours */
+.c:hover { z-index: 9; }
 .c:hover::before {
-  transform: scale(6);
   background: var(--ac);
   border-color: var(--ac);
-  border-radius: 5px;
-  box-shadow: 0 0 0 1px var(--ac), 0 12px 36px rgba(0,0,0,.8);
+  box-shadow: 0 0 0 2px var(--ac), 0 0 10px rgba(232,192,140,.5);
 }
-.c:hover + .c, .c:has(+ .c:hover)
-  { z-index: 7; }
-.c:hover + .c::before, .c:has(+ .c:hover)::before
-  { transform: scale(3.6); background: rgba(232,192,140,.75); border-color: rgba(232,192,140,.85); box-shadow: 0 6px 20px rgba(0,0,0,.55); }
-.c:hover + .c + .c, .c:has(+ .c + .c:hover)
-  { z-index: 5; }
-.c:hover + .c + .c::before, .c:has(+ .c + .c:hover)::before
-  { transform: scale(2.2); background: rgba(232,192,140,.45); }
-.c:hover + .c + .c + .c, .c:has(+ .c + .c + .c:hover)
-  { z-index: 3; }
-.c:hover + .c + .c + .c::before, .c:has(+ .c + .c + .c:hover)::before
-  { transform: scale(1.45); background: rgba(232,192,140,.22); }
+/* Keep highlight when cursor moves to the lens above the cell */
+.c.pinned::before {
+  background: var(--ac);
+  border-color: var(--ac);
+  box-shadow: 0 0 0 2px var(--ac), 0 0 10px rgba(232,192,140,.5);
+}
 
 /* ── Floating lens ────────────────────────────────────────────────
-   A single fixed-size panel that JS positions above the cursor.
-   pointer-events:none on container so the cursor always lands on
-   the native .c element beneath, giving smooth cell-by-cell tracking
-   at any window size. Only btn and link have pointer-events:auto.
+   JS positions this above the cursor. pointer-events:none so the
+   cursor always lands on the .c beneath — smooth tracking at any
+   scale. The lens IS the "magnified" view of the hovered cell.
+   Only the link inside has pointer-events:auto.
 ──────────────────────────────────────────────────────────────────── */
 .lens {
   position: fixed;
-  width: 168px;
-  padding: 18px 16px 14px;
+  width: 180px;
+  padding: 20px 18px 18px;
   background: var(--ac);
-  border-radius: 9px;
-  box-shadow: 0 2px 8px rgba(0,0,0,.25), 0 12px 36px rgba(0,0,0,.7);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3), 0 16px 40px rgba(0,0,0,.7);
   z-index: 100;
   display: none;
   pointer-events: none;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  /* Subtle pointer triangle at bottom-center */
 }
 .lens.on { display: flex; }
 
-.lens-head { display: flex; flex-direction: column; align-items: center; gap: 1px; width: 100%; }
-.lens-week { font-family: var(--sf); font-size: 18px; font-weight: 600; color: #101517; text-align: center; line-height: 1.15; }
-.lens-year { font-family: var(--ss); font-size: 11px; color: rgba(16,21,23,.55); }
+/* Small triangle pointing down toward the hovered cell */
+.lens::after {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 8px solid var(--ac);
+}
+
+.lens-head { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
+.lens-week { font-family: var(--sf); font-size: 22px; font-weight: 600; color: #101517; text-align: center; line-height: 1.1; }
+.lens-year { font-family: var(--ss); font-size: 12px; color: rgba(16,21,23,.5); letter-spacing: .06em; }
+
+.lens-divider { width: 100%; height: 1px; background: rgba(16,21,23,.12); }
 
 .lens-preview {
   display: none;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
   width: 100%;
-  border-top: 1px solid rgba(16,21,23,.12);
-  padding-top: 7px;
 }
 .lens-preview.on { display: flex; }
 .lens-note-txt {
   font-family: var(--ss);
-  font-size: 10px;
-  color: rgba(16,21,23,.75);
+  font-size: 11px;
+  color: rgba(16,21,23,.7);
   text-align: center;
   width: 100%;
   overflow: hidden;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 .lens-link-txt {
   font-family: var(--ss);
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(16,21,23,.55);
   text-decoration: underline;
   overflow: hidden;
@@ -158,21 +158,13 @@ html, body { margin: 0; padding: 0; background: #101517; }
 }
 .lens-link-txt:hover { color: #101517; }
 
-.lens-btn {
+.lens-cta {
   font-family: var(--ss);
   font-size: 10px;
-  font-weight: 500;
-  color: rgba(16,21,23,.6);
-  background: rgba(16,21,23,.08);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  padding: 4px 10px;
-  white-space: nowrap;
-  pointer-events: auto;
-  margin-top: 2px;
+  color: rgba(16,21,23,.4);
+  text-align: center;
+  letter-spacing: .04em;
 }
-.lens-btn:hover { background: rgba(16,21,23,.15); color: #101517; }
 
 /* ── Modal ──────────────────────────────────────────────────────── */
 .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 200; align-items: center; justify-content: center; }
@@ -183,13 +175,13 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .modal-close { background: none; border: none; color: #5a6370; font-size: 22px; cursor: pointer; padding: 0; line-height: 1; }
 .modal-close:hover { color: #fff; }
 
-/* View mode */
-.note-display { font-family: var(--ss); font-size: 15px; color: #dcdcde; line-height: 1.65; margin: 0 0 12px; white-space: pre-wrap; }
+/* View state */
+.note-display { font-size: 15px; color: #dcdcde; line-height: 1.65; margin: 0 0 12px; white-space: pre-wrap; font-family: var(--ss); }
 .link-display { display: block; font-size: 14px; color: var(--ac); text-decoration: underline; margin-bottom: 24px; word-break: break-all; }
 .link-display:hover { color: #f0cfa0; }
 
-/* Edit mode */
-.modal-lbl  { display: block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: rgba(232,192,140,.65); font-weight: 600; margin-bottom: 7px; }
+/* Edit state */
+.modal-lbl   { display: block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: rgba(232,192,140,.65); font-weight: 600; margin-bottom: 7px; }
 .modal-field { width: 100%; background: var(--bg); border: 1px solid var(--bd); border-radius: 6px; color: #dcdcde; font-family: var(--ss); padding: 11px 14px; outline: none; margin-bottom: 14px; }
 .modal-field:focus { border-color: rgba(232,192,140,.45); }
 .modal-field::placeholder { color: #384048; }
@@ -210,9 +202,9 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 <body>
 <div class="root"><div class="wrap">
 
-<span class="eyebrow">Prototype v20260607·1821 · 52 × 10 · Fisheye hover · JS notes</span>
+<span class="eyebrow">Prototype v20260607·1912 · 52 × 10 · Hover + click · JS notes</span>
 <h1 class="title">A decade, <em>one week at a time.</em></h1>
-<p class="lead">520 cells spanning one decade. Hover any cell to magnify. Click the panel to annotate a week with a note and link.</p>
+<p class="lead">520 cells spanning one decade. Hover to preview. Click any cell to add or view a note.</p>
 
 <div class="meta">
   <div class="meta-item"><span class="k">Span</span><span class="v">02026<small>–</small>02035</span></div>
@@ -228,17 +220,20 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 
 </div></div>
 
-<!-- Floating lens — single instance, JS-positioned above cursor -->
-<div class="lens" id="lens" aria-live="polite">
+<!-- Floating lens — JS-positioned above the cursor; pointer-events:none
+     so the cursor always reaches the native .c element beneath it.
+     The lens is the "magnified" info panel for the hovered cell.      -->
+<div class="lens" id="lens">
   <div class="lens-head">
     <span class="lens-week" id="lensWeek"></span>
     <span class="lens-year" id="lensYear"></span>
   </div>
   <div class="lens-preview" id="lensPreview">
+    <div class="lens-divider"></div>
     <span class="lens-note-txt" id="lensNoteTxt"></span>
-    <a  class="lens-link-txt" id="lensLinkTxt" target="_blank" rel="noopener"></a>
+    <a class="lens-link-txt" id="lensLinkTxt" target="_blank" rel="noopener"></a>
   </div>
-  <button class="lens-btn" id="lensBtn" type="button">+ add a note</button>
+  <div class="lens-cta" id="lensCta">click to add a note</div>
 </div>
 
 <!-- Modal -->
@@ -249,7 +244,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
       <button class="modal-close" id="modalClose" aria-label="Close">×</button>
     </div>
 
-    <!-- View state: shown when an existing note is opened -->
+    <!-- View state -->
     <div id="modeView" style="display:none">
       <p class="note-display" id="viewNote"></p>
       <a class="link-display" id="viewLink" target="_blank" rel="noopener" style="display:none"></a>
@@ -259,7 +254,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
       </div>
     </div>
 
-    <!-- Edit state: shown for new notes or after clicking "Edit note" -->
+    <!-- Edit state -->
     <div id="modeEdit">
       <label class="modal-lbl" for="modalText">Note</label>
       <textarea class="modal-field" id="modalText" placeholder="What happened this week?"></textarea>
@@ -304,12 +299,10 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   }
 
   /* ── Grid ─────────────────────────────────────────────────────── */
-  // One .row per year — sibling CSS selectors stay within each row,
-  // preventing the fisheye effect from bleeding across year boundaries.
   var grid = document.getElementById('grid');
   for (var yi = 0; yi < YEARS; yi++) {
     var year = START_YEAR + yi;
-    var row = document.createElement('div');
+    var row  = document.createElement('div');
     row.className = 'row';
     for (var wi = 1; wi <= WEEKS; wi++) {
       var a = document.createElement('a');
@@ -333,42 +326,34 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
     for (var i = 0; i < cells.length; i++) {
       var cell = cells[i];
       var note = notes[cell.dataset.d];
-      var hasNote = !!(note && (note.text || note.url));
-      var hasLink = !!(note && note.url);
-      cell.classList.toggle('has-note', hasNote);
-      cell.classList.toggle('has-link', hasLink);
+      cell.classList.toggle('has-note', !!(note && (note.text || note.url)));
+      cell.classList.toggle('has-link', !!(note && note.url));
     }
     var nc = document.getElementById('noteCount');
     if (nc) nc.innerHTML = Object.keys(notes).length + '<small>saved</small>';
   }
 
   /* ── Floating lens ────────────────────────────────────────────── */
-  // The lens is a single fixed-position panel positioned by JS above
-  // the cursor. pointer-events:none on the container means the cursor
-  // always lands on the native .c element beneath it — smooth tracking
-  // at any viewport size. Only lensBtn and lensLinkTxt are interactive.
-
   var lens        = document.getElementById('lens');
   var lensWeek    = document.getElementById('lensWeek');
   var lensYear    = document.getElementById('lensYear');
   var lensPreview = document.getElementById('lensPreview');
   var lensNoteTxt = document.getElementById('lensNoteTxt');
   var lensLinkTxt = document.getElementById('lensLinkTxt');
-  var lensBtn     = document.getElementById('lensBtn');
+  var lensCta     = document.getElementById('lensCta');
 
   var currentCell = null;
-  var LENS_GAP    = 14;  // px between cursor and bottom of lens
+  var pinnedCell  = null;  // cell highlighted while cursor is in lens area
+  var LENS_GAP    = 16;    // px between lens triangle tip and hovered cell
 
   function updateLens(cell) {
     var key   = cell.dataset.d;
     var parts = key.split(', ');
     lensWeek.textContent = parts[0];
     lensYear.textContent = parts[1];
-    lensBtn.dataset.key  = key;
 
     var note = loadNotes()[key];
     if (note && (note.text || note.url)) {
-      lensBtn.textContent = 'see note';
       lensPreview.classList.add('on');
       lensNoteTxt.textContent = note.text || '';
       if (note.url) {
@@ -378,37 +363,51 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
       } else {
         lensLinkTxt.style.display = 'none';
       }
+      lensCta.textContent = 'click to view or edit';
     } else {
-      lensBtn.textContent = '+ add a note';
       lensPreview.classList.remove('on');
+      lensCta.textContent = 'click to add a note';
     }
   }
 
   function positionLens(mx, my) {
-    var lh = lens.offsetHeight;
-    var lw = lens.offsetWidth;
+    // Show lens without display:flex yet so we can measure it
+    var lh = lens.offsetHeight || 140;
+    var lw = lens.offsetWidth  || 180;
     var top  = my - lh - LENS_GAP;
     var left = mx - lw / 2;
-    // Clamp to viewport
-    var maxLeft = window.innerWidth  - lw - 8;
-    var maxTop  = window.innerHeight - lh - 8;
-    left = Math.max(8, Math.min(left, maxLeft));
-    top  = Math.max(8, Math.min(top,  maxTop));
+    left = Math.max(8, Math.min(left, window.innerWidth  - lw - 8));
+    top  = Math.max(8, Math.min(top,  window.innerHeight - lh - 8));
     lens.style.left = left + 'px';
     lens.style.top  = top  + 'px';
   }
 
-  // Track cursor — fires continuously so the lens follows the mouse.
-  // Because lens has pointer-events:none, e.target is always the
-  // underlying page element (the .c cell), giving accurate detection.
+  function setPinned(cell) {
+    if (pinnedCell && pinnedCell !== cell) {
+      pinnedCell.classList.remove('pinned');
+    }
+    if (cell) {
+      cell.classList.add('pinned');
+    }
+    pinnedCell = cell;
+  }
+
+  function clearPinned() {
+    if (pinnedCell) pinnedCell.classList.remove('pinned');
+    pinnedCell = null;
+  }
+
+  // mousemove on document — lens has pointer-events:none so e.target
+  // is always the element the cursor physically reaches (.c cells or
+  // the page background). When cursor enters the lens area the browser
+  // sees through it to the cell or background beneath.
   document.addEventListener('mousemove', function (e) {
-    var t = e.target;
+    var t    = e.target;
 
-    // If cursor is over an interactive lens element, keep the lens
-    // stable — don't update or hide it.
-    if (t === lensBtn || t === lensLinkTxt) return;
+    // If cursor reaches an interactive child of the lens (the link),
+    // keep the lens stable on the current cell.
+    if (t === lensLinkTxt) return;
 
-    // Find nearest .c ancestor
     var cell = t && t.closest ? t.closest('.c') : null;
 
     if (cell) {
@@ -416,12 +415,23 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
         currentCell = cell;
         updateLens(cell);
       }
+      // Keep .pinned on this cell so the highlight persists if cursor
+      // drifts into the lens area above.
+      setPinned(cell);
       positionLens(e.clientX, e.clientY);
       lens.classList.add('on');
     } else {
+      // Cursor left all cells — hide lens and remove pinned highlight
       lens.classList.remove('on');
+      clearPinned();
       currentCell = null;
     }
+  });
+
+  /* ── Click any cell → open modal ─────────────────────────────── */
+  grid.addEventListener('click', function (e) {
+    var cell = e.target.closest ? e.target.closest('.c') : null;
+    if (cell) openModal(cell.dataset.d);
   });
 
   /* ── Modal ────────────────────────────────────────────────────── */
@@ -434,20 +444,15 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   var modalText = document.getElementById('modalText');
   var modalUrl  = document.getElementById('modalUrl');
   var modalKey  = null;
-  var hadNote   = false;  // was there already a note when modal opened?
+  var hadNote   = false;
 
-  function openModal(key, startInEdit) {
-    var notes = loadNotes();
-    var note  = notes[key];
-    modalKey  = key;
-    hadNote   = !!(note && (note.text || note.url));
+  function openModal(key) {
+    var note = loadNotes()[key];
+    modalKey = key;
+    hadNote  = !!(note && (note.text || note.url));
     modalWk.textContent = key;
-
-    if (hadNote && !startInEdit) {
-      showView(note);
-    } else {
-      showEdit(note || {});
-    }
+    if (hadNote) { showView(note); }
+    else         { showEdit({}); }
     modalBg.classList.add('open');
   }
 
@@ -483,39 +488,24 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
     else             { delete notes[modalKey]; }
     saveNotes(notes);
     refreshCells(notes);
-    // Update lens if it's showing the same cell
-    if (currentCell && currentCell.dataset.d === modalKey) updateLens(currentCell);
+    if (currentCell) updateLens(currentCell);
     closeModal();
   }
 
-  // Lens button — opens modal (view or edit depending on note state)
-  lensBtn.addEventListener('click', function () {
-    if (lensBtn.dataset.key) openModal(lensBtn.dataset.key, false);
-  });
-
-  // Lens link click is handled natively by <a target="_blank">
-
-  // Modal controls
   document.getElementById('btnEdit').addEventListener('click', function () {
-    var notes = loadNotes();
-    showEdit(notes[modalKey] || {});
+    showEdit(loadNotes()[modalKey] || {});
   });
-  document.getElementById('btnDone').addEventListener('click', closeModal);
+  document.getElementById('btnDone').addEventListener('click',   closeModal);
   document.getElementById('modalClose').addEventListener('click', closeModal);
-  document.getElementById('modalSave').addEventListener('click', saveNote);
+  document.getElementById('modalSave').addEventListener('click',   saveNote);
   document.getElementById('modalCancel').addEventListener('click', function () {
-    // If there was an existing note, go back to view; otherwise close
-    if (hadNote) {
-      var notes = loadNotes();
-      showView(notes[modalKey] || {});
-    } else {
-      closeModal();
-    }
+    if (hadNote) { showView(loadNotes()[modalKey] || {}); }
+    else         { closeModal(); }
   });
   modalBg.addEventListener('click', function (e) { if (e.target === modalBg) closeModal(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 
-  // Init
+  /* ── Init ─────────────────────────────────────────────────────── */
   refreshCells(loadNotes());
 }());
 </script>
