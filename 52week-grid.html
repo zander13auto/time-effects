@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>52-Week Life Grid · 02026–02035</title>
+<title>52-Week Life Grid · 02026–02125</title>
 <style>
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #101517; }
@@ -34,7 +34,7 @@ html, body { margin: 0; padding: 0; background: #101517; }
 
 .container { background: var(--bg2); border: 1px solid rgba(232,192,140,.25); border-radius: 6px; padding: 36px 24px 24px 64px; position: relative; }
 .axis-x { position: absolute; top: 14px; left: 64px; right: 24px; display: grid; grid-template-columns: repeat(52,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: center; }
-.axis-y { position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px; display: grid; grid-template-rows: repeat(10,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: right; padding-right: 10px; align-items: center; }
+.axis-y { position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px; display: grid; grid-template-rows: repeat(100,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: right; padding-right: 10px; align-items: center; }
 
 /* Grid — one .row per year so siblings don't cross year boundaries */
 .grid { display: flex; flex-direction: column; background: rgba(232,192,140,.18); padding: 2px; border-radius: 3px; gap: 2px; }
@@ -202,13 +202,13 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 <body>
 <div class="root"><div class="wrap">
 
-<span class="eyebrow">Prototype v20260607·1912 · 52 × 10 · Hover + click · JS notes</span>
-<h1 class="title">A decade, <em>one week at a time.</em></h1>
-<p class="lead">520 cells spanning one decade. Hover to preview. Click any cell to add or view a note.</p>
+<span class="eyebrow">Prototype v20260607·1944 · 52 × 100 · Hover + click · JS notes</span>
+<h1 class="title">A century, <em>one week at a time.</em></h1>
+<p class="lead">5,200 cells spanning one hundred years. Hover to preview. Click any cell to add or view a note.</p>
 
 <div class="meta">
-  <div class="meta-item"><span class="k">Span</span><span class="v">02026<small>–</small>02035</span></div>
-  <div class="meta-item"><span class="k">Weeks</span><span class="v">520</span></div>
+  <div class="meta-item"><span class="k">Span</span><span class="v">02026<small>–</small>02125</span></div>
+  <div class="meta-item"><span class="k">Weeks</span><span class="v">5,200</span></div>
   <div class="meta-item"><span class="k">Notes</span><span class="v" id="noteCount">0<small>saved</small></span></div>
 </div>
 
@@ -272,7 +272,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 (function () {
   'use strict';
 
-  var YEARS = 10, WEEKS = 52, START_YEAR = 2026, STORE = 'lg-notes-v1';
+  var YEARS = 100, WEEKS = 52, START_YEAR = 2026, STORE = 'lg-notes-v1';
 
   /* ── ISO week ─────────────────────────────────────────────────── */
   function isoWeek(d) {
@@ -294,7 +294,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   var axisY = document.getElementById('axisY');
   for (var yx = 0; yx < YEARS; yx++) {
     var sy = document.createElement('span');
-    sy.textContent = '0' + (START_YEAR + yx);
+    // Label every 10th year; leave others blank to avoid crowding
+    sy.textContent = (yx % 10 === 0) ? '0' + (START_YEAR + yx) : '';
     axisY.appendChild(sy);
   }
 
