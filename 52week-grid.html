@@ -111,8 +111,8 @@ html, body { margin: 0; padding: 0; background: #101517; }
   border-top: 8px solid var(--ac);
 }
 .lens-head { display: flex; flex-direction: column; align-items: center; gap: 2px; width: 100%; }
-.lens-week { font-family: var(--sf); font-size: 22px; font-weight: 600; color: #101517; text-align: center; line-height: 1.1; }
-.lens-year { font-family: var(--ss); font-size: 12px; color: rgba(16,21,23,.5); letter-spacing: .06em; }
+.lens-week { font-family: var(--ss); font-size: 10px; color: rgba(16,21,23,.35); text-align: center; letter-spacing: .08em; text-transform: uppercase; }
+.lens-year { font-family: var(--ss); font-size: 12px; color: rgba(16,21,23,.48); letter-spacing: .06em; }
 .lens-divider { width: 100%; height: 1px; background: rgba(16,21,23,.12); }
 .lens-preview { display: none; flex-direction: column; align-items: center; gap: 4px; width: 100%; }
 .lens-preview.on { display: flex; }
@@ -137,7 +137,10 @@ html, body { margin: 0; padding: 0; background: #101517; }
   flex-direction: column;
 }
 .modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; flex-shrink: 0; }
-.modal-wk   { font-family: var(--sf); font-size: 20px; color: var(--ac); font-weight: 400; line-height: 1.2; }
+.modal-wk   { display: flex; flex-direction: column; gap: 1px; }
+.modal-date-range { font-family: var(--sf); font-size: 20px; color: var(--ac); font-weight: 400; line-height: 1.2; }
+.modal-year-lbl   { font-family: var(--ss); font-size: 12px; color: rgba(232,192,140,.55); letter-spacing: .06em; }
+.modal-week-lbl   { font-family: var(--ss); font-size: 10px; color: rgba(232,192,140,.35); letter-spacing: .08em; text-transform: uppercase; }
 .modal-close { background: none; border: none; color: #5a6370; font-size: 22px; cursor: pointer; padding: 0; line-height: 1; }
 .modal-close:hover { color: #fff; }
 
@@ -249,7 +252,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 .grid-footer { display: flex; justify-content: flex-end; margin-top: 10px; }
 
 /* Lens date range */
-.lens-dates { font-family: var(--ss); font-size: 11px; color: rgba(16,21,23,.48); letter-spacing: .03em; }
+.lens-dates { font-family: var(--sf); font-size: 22px; font-weight: 600; color: #101517; text-align: center; line-height: 1.1; }
 </style>
 </head>
 <body>
@@ -324,9 +327,9 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 <!-- Floating lens -->
 <div class="lens" id="lens">
   <div class="lens-head">
-    <span class="lens-week" id="lensWeek"></span>
-    <span class="lens-year" id="lensYear"></span>
     <span class="lens-dates" id="lensDates"></span>
+    <span class="lens-year" id="lensYear"></span>
+    <span class="lens-week" id="lensWeek"></span>
   </div>
   <div class="lens-preview" id="lensPreview">
     <div class="lens-divider"></div>
@@ -814,9 +817,14 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     var note = loadNotes()[key];
     modalKey = key;
     hadNote  = !!(note && (note.text || note.url));
-    modalWk.textContent = key;
     var mkp = key.split(', ');
-    document.getElementById('modalGcal').href = isoWeekToGCalURL(parseInt(mkp[1], 10), parseInt(mkp[0].replace('Week ', ''), 10));
+    var mwn = parseInt(mkp[0].replace('Week ', ''), 10);
+    var myn = parseInt(mkp[1], 10);
+    modalWk.innerHTML =
+      '<span class="modal-date-range">' + formatWeekRange(myn, mwn) + '</span>' +
+      '<span class="modal-year-lbl">0' + myn + '</span>' +
+      '<span class="modal-week-lbl">Week ' + mwn + '</span>';
+    document.getElementById('modalGcal').href = isoWeekToGCalURL(myn, mwn);
     if (hadNote) { showView(note); } else { showEdit({}); }
     modalBg.classList.add('open');
   }
