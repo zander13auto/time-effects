@@ -358,7 +358,7 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
 <body>
 <div class="root"><div class="wrap">
 
-<span class="eyebrow">Prototype v20260607·1529 · 52 × 10 · Fisheye hover · JS notes</span>
+<span class="eyebrow">Prototype v20260607·1543 · 52 × 10 · Fisheye hover · JS notes</span>
 <h1 class="title">A decade, <em>one week at a time.</em></h1>
 <p class="lead">520 cells spanning one decade. Hover any cell to magnify — neighboring cells scale with a fisheye effect. Click "add a note" on any week to annotate it.</p>
 
@@ -477,10 +477,22 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
 
   let prevKey     = null;
   let modalIsOpen = false;
+  let mouseX = 0, mouseY = 0;
+  document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
 
-  // RAF loop: gr.querySelector('.c:hover') reads CSS hover state which
-  // always resolves to the native-size <a> element — not the scaled
-  // ::before tile — so hover detection is always accurate.
+  // Returns true if the mouse is currently inside the visible lens div.
+  // Used to keep the lens alive while the cursor travels from the tiny
+  // native cell (bottom of the magnified area) up to the title/button.
+  function mouseInLens() {
+    if (!lens.classList.contains('on')) return false;
+    const r = lens.getBoundingClientRect();
+    return mouseX >= r.left && mouseX <= r.right &&
+           mouseY >= r.top  && mouseY <= r.bottom;
+  }
+
+  // RAF loop: grid.querySelector('.c:hover') always resolves to the
+  // native-size <a> element (::before has pointer-events:none), so
+  // hover detection is pixel-accurate even under the scaled tile.
   function tick() {
     if (!modalIsOpen) {
       const hov = grid.querySelector('.c:hover');
@@ -502,7 +514,9 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
           lensAdd.dataset.key   = key;
           lens.classList.add('on');
         }
-      } else if (prevKey !== null) {
+      } else if (prevKey !== null && !mouseInLens()) {
+        // Only hide if the cursor has also left the lens bounds —
+        // prevents the lens from vanishing mid-travel to the button.
         lens.classList.remove('on');
         prevKey = null;
       }
