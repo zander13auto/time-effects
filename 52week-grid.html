@@ -48,11 +48,11 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .span-x:hover { color: #fff; }
 
 /* ── Grid container ───────────────────────────────────────────────── */
-.container { background: var(--bg2); border: 1px solid rgba(232,192,140,.25); border-radius: 6px; padding: 36px 24px 24px 64px; position: relative; }
+.container { background: var(--bg2); border: 1px solid rgba(232,192,140,.25); border-radius: 6px; padding: 36px 56px 24px 64px; position: relative; }
 .axis-x { position: absolute; top: 14px; left: 64px; right: 24px; display: grid; grid-template-columns: repeat(52,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: center; }
 .axis-y { position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px; display: grid; font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: right; padding-right: 10px; align-items: center; }
 
-.grid { display: flex; flex-direction: column; background: rgba(232,192,140,.18); padding: 2px; border-radius: 3px; gap: 2px; }
+.grid { display: flex; flex-direction: column; background: rgba(232,192,140,.18); padding: 2px; border-radius: 3px; gap: 2px; overflow: visible; }
 .row  { display: grid; grid-template-columns: repeat(52,1fr); gap: 2px; }
 
 /* ── Cell ─────────────────────────────────────────────────────────── */
@@ -75,7 +75,9 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .c.has-note::before { border-color: rgba(232,192,140,.55); }
 /* Link indicator dot — top-right corner */
 .c.has-link::after  { content: ''; position: absolute; top: 2px; right: 2px; width: 3px; height: 3px; background: rgba(16,21,23,.5); border-radius: 50%; pointer-events: none; }
-.c.is-today::before          { outline: 2px solid var(--bl); outline-offset: -1px; }
+.c.is-today::before          { outline: 2px solid var(--bl); outline-offset: -1px; box-shadow: 0 0 6px rgba(56,88,233,.5); }
+.row.is-current-year         { position: relative; background: rgba(232,192,140,.055); border-radius: 2px; }
+.cur-yr-label                { position: absolute; right: -48px; top: 50%; transform: translateY(-50%); font-size: 10px; color: rgba(232,192,140,.55); font-family: var(--ss); letter-spacing: .05em; pointer-events: none; white-space: nowrap; font-weight: 600; }
 .c:hover { z-index: 9; }
 .c:hover::before, .c.pinned::before {
   background: var(--ac);
@@ -416,11 +418,18 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
             Skip weeks that already have entries.
           </span>
         </label>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:14px">
+          <input type="radio" name="importMode" value="append" style="margin-top:3px;accent-color:var(--ac)">
+          <span style="color:#dcdcde;font-size:14px;line-height:1.5">
+            <strong style="color:#fff;display:block;margin-bottom:2px">Append data</strong>
+            Add to empty weeks and merge into weeks that already have entries.
+          </span>
+        </label>
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
           <input type="radio" name="importMode" value="overwrite" style="margin-top:3px;accent-color:var(--ac)">
           <span style="color:#dcdcde;font-size:14px;line-height:1.5">
             <strong style="color:#fff;display:block;margin-bottom:2px">Overwrite all</strong>
-            Replace existing entries for matching weeks.
+            Clear every saved entry, then import this data fresh.
           </span>
         </label>
       </div>
@@ -586,6 +595,13 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       var year = START_YEAR + yi;
       var row  = document.createElement('div');
       row.className = 'row';
+      if (year === today.year) {
+        row.classList.add('is-current-year');
+        var yrLbl = document.createElement('span');
+        yrLbl.className = 'cur-yr-label';
+        yrLbl.textContent = '0' + year;
+        row.appendChild(yrLbl);
+      }
       for (var wi = 1; wi <= WEEKS; wi++) {
         var a = document.createElement('a');
         a.className = 'c';
@@ -1043,7 +1059,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     var notes = loadNotes();
     importNewW = 0; importExistW = 0;
     for (var k in groups) {
-      if (notes[k] && (notes[k].text || notes[k].url)) importExistW++;
+      if (noteHasContent(notes[k])) importExistW++;
       else importNewW++;
     }
 
@@ -1069,10 +1085,13 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       if (mode === 'add') {
         msg = 'Will add entries to ' + importNewW + ' new week' + (importNewW === 1 ? '' : 's') + '.';
         if (importExistW) msg += ' ' + importExistW + ' existing week' + (importExistW === 1 ? '' : 's') + ' will be skipped.';
-      } else {
-        msg = 'Will add entries to ' + importNewW + ' new week' + (importNewW === 1 ? '' : 's');
-        if (importExistW) msg += ' and overwrite ' + importExistW + ' existing week' + (importExistW === 1 ? '' : 's');
+      } else if (mode === 'append') {
+        msg = 'Will add to ' + importNewW + ' new week' + (importNewW === 1 ? '' : 's');
+        if (importExistW) msg += ' and append to ' + importExistW + ' existing week' + (importExistW === 1 ? '' : 's');
         msg += '.';
+      } else {
+        var totalSaved = Object.keys(loadNotes()).length;
+        msg = 'Will clear all ' + totalSaved + ' saved entries and import ' + importParsed + ' events across ' + Object.keys(importGroups).length + ' weeks fresh.';
       }
       document.getElementById('importConfirmMsg').textContent = msg;
       importStep1El.style.display = 'none';
@@ -1098,26 +1117,41 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   });
 
   function executeImport(mode) {
-    var notes  = loadNotes();
-    var added  = 0, updated = 0, skipped = 0;
+    var notes = mode === 'overwrite' ? {} : loadNotes();
+    var added = 0, updated = 0, skipped = 0;
     for (var key in importGroups) {
       var titles   = importGroups[key].join('\n');
-      var hasExist = noteHasContent(notes[key]);
       var wpLinks  = importWpLinks[key];
       var firstUrl = importUrlMap[key] || '';
       var newNote  = wpLinks ? { links: wpLinks } : { text: titles, url: firstUrl };
-      if (hasExist) {
-        if (mode === 'overwrite') { notes[key] = newNote; updated++; }
-        else { skipped++; }
-      } else {
+      var hasExist = noteHasContent(notes[key]);
+      if (mode === 'add') {
+        if (hasExist) { skipped++; } else { notes[key] = newNote; added++; }
+      } else if (mode === 'overwrite') {
         notes[key] = newNote; added++;
+      } else { /* append */
+        if (!hasExist) {
+          notes[key] = newNote; added++;
+        } else {
+          var ex = notes[key];
+          if (wpLinks && ex.links) {
+            notes[key] = { links: ex.links.concat(wpLinks) };
+          } else if (wpLinks) {
+            notes[key] = { text: (ex.text ? ex.text + '\n' : '') + titles, url: ex.url || '' };
+          } else if (ex.links) {
+            notes[key] = { links: ex.links, text: (ex.text ? ex.text + '\n' : '') + titles };
+          } else {
+            notes[key] = { text: (ex.text ? ex.text + '\n' : '') + titles, url: ex.url || firstUrl };
+          }
+          updated++;
+        }
       }
     }
     saveNotes(notes);
     refreshCells(notes);
     closeImportModal();
     var msg = 'Done. ' + added + ' week' + (added === 1 ? '' : 's') + ' added';
-    if (updated) msg += ', ' + updated + ' overwritten';
+    if (updated) msg += ', ' + updated + ' merged';
     if (skipped) msg += ', ' + skipped + ' skipped';
     alert(msg + '.');
     document.getElementById('importFile').value = '';
