@@ -8,7 +8,6 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #101517; }
 
-/* ── Design tokens ─────────────────────────────────────────────── */
 :root {
   --ac: #e8c08c;
   --bl: #3858E9;
@@ -19,7 +18,6 @@ html, body { margin: 0; padding: 0; background: #101517; }
   --bd: rgba(232,192,140,.18);
 }
 
-/* ── Page ───────────────────────────────────────────────────────── */
 .root {
   background: var(--bg);
   color: #fff;
@@ -30,7 +28,6 @@ html, body { margin: 0; padding: 0; background: #101517; }
 }
 .wrap { max-width: 1280px; margin: 0 auto; }
 
-/* ── Header type ────────────────────────────────────────────────── */
 .eyebrow {
   display: inline-block;
   font-size: 11px;
@@ -45,52 +42,24 @@ html, body { margin: 0; padding: 0; background: #101517; }
   font-weight: 400;
   letter-spacing: -.02em;
   line-height: 1.05;
-  font-size: clamp(40px, 6vw, 72px);
+  font-size: clamp(40px,6vw,72px);
   color: #fff;
   margin: 0 0 16px;
 }
 .title em { font-style: italic; color: var(--ac); font-weight: 300; }
-.lead {
-  font-size: 17px;
-  color: #dcdcde;
-  max-width: 680px;
-  margin: 0 0 40px;
-  line-height: 1.6;
-}
+.lead { font-size: 17px; color: #dcdcde; max-width: 680px; margin: 0 0 40px; line-height: 1.6; }
 
-/* ── Meta strip ─────────────────────────────────────────────────── */
 .meta {
-  display: flex;
-  gap: 32px;
-  flex-wrap: wrap;
-  margin-bottom: 40px;
-  padding: 20px 24px;
+  display: flex; gap: 32px; flex-wrap: wrap;
+  margin-bottom: 40px; padding: 20px 24px;
   background: rgba(232,192,140,.04);
-  border: 1px solid var(--bd);
-  border-radius: 8px;
+  border: 1px solid var(--bd); border-radius: 8px;
 }
 .meta-item { display: flex; flex-direction: column; gap: 4px; }
-.meta-item .k {
-  font-size: 10px;
-  letter-spacing: .16em;
-  text-transform: uppercase;
-  color: var(--ac);
-  font-weight: 600;
-}
-.meta-item .v {
-  font-family: var(--sf);
-  font-size: 22px;
-  color: #fff;
-  font-feature-settings: 'tnum';
-}
-.meta-item .v small {
-  font-size: 13px;
-  color: #a7aaad;
-  font-family: var(--ss);
-  margin-left: 6px;
-}
+.meta-item .k { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ac); font-weight: 600; }
+.meta-item .v { font-family: var(--sf); font-size: 22px; color: #fff; font-feature-settings: 'tnum'; }
+.meta-item .v small { font-size: 13px; color: #a7aaad; font-family: var(--ss); margin-left: 6px; }
 
-/* ── Grid container ─────────────────────────────────────────────── */
 .container {
   background: var(--bg2);
   border: 1px solid rgba(232,192,140,.25);
@@ -99,45 +68,29 @@ html, body { margin: 0; padding: 0; background: #101517; }
   position: relative;
 }
 .axis-x {
-  position: absolute;
-  top: 14px; left: 64px; right: 24px;
-  display: grid;
-  grid-template-columns: repeat(52, 1fr);
-  font-size: 10px;
-  color: rgba(232,192,140,.7);
-  letter-spacing: .06em;
-  font-feature-settings: 'tnum';
-  font-weight: 600;
-  text-align: center;
+  position: absolute; top: 14px; left: 64px; right: 24px;
+  display: grid; grid-template-columns: repeat(52,1fr);
+  font-size: 10px; color: rgba(232,192,140,.7);
+  letter-spacing: .06em; font-feature-settings: 'tnum';
+  font-weight: 600; text-align: center;
 }
 .axis-y {
-  position: absolute;
-  top: 36px; left: 8px; bottom: 24px;
-  width: 50px;
-  display: grid;
-  grid-template-rows: repeat(10, 1fr);
-  font-size: 10px;
-  color: rgba(232,192,140,.7);
-  letter-spacing: .06em;
-  font-feature-settings: 'tnum';
-  font-weight: 600;
-  text-align: right;
-  padding-right: 10px;
-  align-items: center;
+  position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px;
+  display: grid; grid-template-rows: repeat(10,1fr);
+  font-size: 10px; color: rgba(232,192,140,.7);
+  letter-spacing: .06em; font-feature-settings: 'tnum';
+  font-weight: 600; text-align: right; padding-right: 10px; align-items: center;
 }
 .grid {
-  display: grid;
-  grid-template-columns: repeat(52, 1fr);
-  gap: 2px;
-  background: rgba(232,192,140,.18);
-  padding: 2px;
-  border-radius: 3px;
+  display: grid; grid-template-columns: repeat(52,1fr);
+  gap: 2px; background: rgba(232,192,140,.18);
+  padding: 2px; border-radius: 3px;
 }
 
 /* ── Cell ───────────────────────────────────────────────────────────
-   <a> stays at native size for correct pointer hit-detection.
-   All visual scaling lives in ::before (pointer-events: none).
-   transform-origin: 50% 100% → tile grows upward from bottom edge.
+   .c stays at native size for correct hit-detection.
+   All visual scaling is in ::before (pointer-events:none).
+   transform-origin 50% 100% → grows upward from bottom-center.
 ──────────────────────────────────────────────────────────────────── */
 .c {
   aspect-ratio: 1/1;
@@ -164,13 +117,11 @@ html, body { margin: 0; padding: 0; background: #101517; }
     border-radius .15s ease;
 }
 
-/* Note states */
 .c.has-note::before          { background: rgba(232,192,140,.5); border-color: rgba(232,192,140,.8); }
 .c.has-note.has-link::before { background: var(--ac); }
 .c.is-today::before          { outline: 2px solid var(--bl); outline-offset: -1px; }
 
-/* Hover — center cell */
-.c:hover { z-index: 9; }
+.c:hover               { z-index: 9; }
 .c:hover::before {
   transform: scale(6);
   background: var(--ac);
@@ -179,188 +130,133 @@ html, body { margin: 0; padding: 0; background: #101517; }
   box-shadow: 0 0 0 1px var(--ac), 0 12px 36px rgba(0,0,0,.8);
 }
 
-/* Fisheye neighbours ±1 */
 .c:hover + .c,
-.c:has(+ .c:hover) { z-index: 7; }
+.c:has(+ .c:hover)          { z-index: 7; }
 .c:hover + .c::before,
-.c:has(+ .c:hover)::before {
+.c:has(+ .c:hover)::before  {
   transform: scale(3.6);
   background: rgba(232,192,140,.75);
   border-color: rgba(232,192,140,.85);
   box-shadow: 0 6px 20px rgba(0,0,0,.55);
 }
 
-/* ±2 */
 .c:hover + .c + .c,
-.c:has(+ .c + .c:hover) { z-index: 5; }
+.c:has(+ .c + .c:hover)         { z-index: 5; }
 .c:hover + .c + .c::before,
-.c:has(+ .c + .c:hover)::before {
-  transform: scale(2.2);
-  background: rgba(232,192,140,.45);
-}
+.c:has(+ .c + .c:hover)::before { transform: scale(2.2); background: rgba(232,192,140,.45); }
 
-/* ±3 */
 .c:hover + .c + .c + .c,
-.c:has(+ .c + .c + .c:hover) { z-index: 3; }
+.c:has(+ .c + .c + .c:hover)         { z-index: 3; }
 .c:hover + .c + .c + .c::before,
-.c:has(+ .c + .c + .c:hover)::before {
-  transform: scale(1.45);
-  background: rgba(232,192,140,.22);
-}
+.c:has(+ .c + .c + .c:hover)::before { transform: scale(1.45); background: rgba(232,192,140,.22); }
 
-/* ── Lens overlay ───────────────────────────────────────────────────
-   position:fixed on body — uses raw viewport coords from
-   getBoundingClientRect(), no container offset math needed.
+/* ── Tip overlay ────────────────────────────────────────────────────
+   Pure CSS. Sized to exactly cover the 6× magnified tile:
+     width/height = 600% of the native cell
+     bottom: 0 matches transform-origin: 50% 100% (grows upward)
+   Hidden and non-interactive by default.
+   On .c:hover → visible and pointer-events:auto.
+   Hovering .tip counts as hovering .c (ancestor rule), so the tip
+   stays visible when the cursor moves from the native cell up into
+   the magnified tile area.
 ──────────────────────────────────────────────────────────────────── */
-.lens {
-  position: fixed;
+.tip {
+  position: absolute;
+  width: 600%;
+  height: 600%;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
   pointer-events: none;
-  z-index: 9999;
+  z-index: 10;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
   padding: 12% 8% 10%;
   opacity: 0;
-  transition: opacity .1s ease;
 }
-.lens.on { opacity: 1; }
-.lens-title {
+.c:hover .tip {
+  pointer-events: auto;
+  opacity: 1;
+}
+.tip-week {
   font-family: var(--sf);
   font-size: 14px;
   font-weight: 600;
   color: #101517;
   text-align: center;
-  line-height: 1.25;
+  line-height: 1.2;
   pointer-events: none;
-  white-space: nowrap;
 }
-.lens-add {
+.tip-year {
   font-family: var(--ss);
   font-size: 10px;
-  color: rgba(16,21,23,.5);
+  color: rgba(16,21,23,.6);
+  pointer-events: none;
+}
+.tip-btn {
+  font-family: var(--ss);
+  font-size: 10px;
+  color: rgba(16,21,23,.55);
   background: none;
   border: none;
   cursor: pointer;
   text-decoration: underline;
   padding: 2px 4px;
-  pointer-events: all;
   white-space: nowrap;
   line-height: 1;
 }
-.lens-add:hover { color: #101517; }
+.tip-btn:hover { color: #101517; }
 
 /* ── Modal ──────────────────────────────────────────────────────── */
 .modal-bg {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.72);
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.72); z-index: 200;
+  align-items: center; justify-content: center;
 }
 .modal-bg.open { display: flex; }
 .modal {
-  background: #1a1f23;
-  border: 1px solid var(--bd);
-  border-radius: 12px;
-  padding: 32px;
-  width: 440px;
-  max-width: calc(100vw - 48px);
+  background: #1a1f23; border: 1px solid var(--bd);
+  border-radius: 12px; padding: 32px;
+  width: 440px; max-width: calc(100vw - 48px);
 }
-.modal-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 20px;
-}
-.modal-wk {
-  font-family: var(--sf);
-  font-size: 20px;
-  color: var(--ac);
-  font-weight: 400;
-  line-height: 1.2;
-}
-.modal-close {
-  background: none;
-  border: none;
-  color: #5a6370;
-  font-size: 22px;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-  margin-top: -2px;
-}
+.modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+.modal-wk   { font-family: var(--sf); font-size: 20px; color: var(--ac); font-weight: 400; line-height: 1.2; }
+.modal-close { background: none; border: none; color: #5a6370; font-size: 22px; cursor: pointer; padding: 0; line-height: 1; }
 .modal-close:hover { color: #fff; }
-.modal-lbl {
-  display: block;
-  font-size: 10px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: rgba(232,192,140,.65);
-  font-weight: 600;
-  margin-bottom: 7px;
+.modal-lbl  { display: block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: rgba(232,192,140,.65); font-weight: 600; margin-bottom: 7px; }
+.modal-field {
+  width: 100%; background: var(--bg);
+  border: 1px solid var(--bd); border-radius: 6px;
+  color: #dcdcde; font-family: var(--ss);
+  padding: 11px 14px; outline: none; margin-bottom: 14px;
 }
-.modal-input {
-  width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--bd);
-  border-radius: 6px;
-  color: #dcdcde;
-  font-family: var(--ss);
-  padding: 11px 14px;
-  outline: none;
-  margin-bottom: 14px;
-}
-.modal-input:focus { border-color: rgba(232,192,140,.45); }
-textarea.modal-input { font-size: 15px; line-height: 1.6; resize: vertical; min-height: 96px; }
-input.modal-input    { font-size: 14px; margin-bottom: 24px; }
-.modal-input::placeholder { color: #384048; }
+.modal-field:focus   { border-color: rgba(232,192,140,.45); }
+.modal-field::placeholder { color: #384048; }
+textarea.modal-field { font-size: 15px; line-height: 1.6; resize: vertical; min-height: 96px; }
+input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
 .btn-cancel {
-  background: transparent;
-  border: 1px solid rgba(232,192,140,.2);
-  color: #7a8390;
-  padding: 9px 18px;
-  border-radius: 6px;
-  font-size: 14px;
-  cursor: pointer;
-  font-family: var(--ss);
+  background: transparent; border: 1px solid rgba(232,192,140,.2);
+  color: #7a8390; padding: 9px 18px; border-radius: 6px;
+  font-size: 14px; cursor: pointer; font-family: var(--ss);
 }
 .btn-cancel:hover { border-color: rgba(232,192,140,.45); color: #fff; }
 .btn-save {
-  background: var(--ac);
-  border: none;
-  color: var(--bg);
-  padding: 9px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: var(--ss);
+  background: var(--ac); border: none; color: var(--bg);
+  padding: 9px 20px; border-radius: 6px;
+  font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--ss);
 }
 .btn-save:hover { background: #f0cfa0; }
-
-/* ── Footer ─────────────────────────────────────────────────────── */
-.footer {
-  background: #000;
-  padding: 32px;
-  text-align: center;
-  font-size: 12px;
-  color: #a7aaad;
-  letter-spacing: .06em;
-  margin: 64px -32px -96px;
-}
-.footer a { color: var(--ac); text-decoration: none; }
 </style>
 </head>
 <body>
 <div class="root"><div class="wrap">
 
-<span class="eyebrow">Prototype v20260607·1608 · 52 × 10 · Fisheye hover · JS notes</span>
+<span class="eyebrow">Prototype v20260607·1642 · 52 × 10 · Fisheye hover · JS notes</span>
 <h1 class="title">A decade, <em>one week at a time.</em></h1>
-<p class="lead">520 cells spanning one decade. Hover any cell to magnify — neighboring cells scale with a fisheye effect. Click "add a note" on any week to annotate it.</p>
+<p class="lead">520 cells spanning one decade. Hover any cell to magnify with a fisheye effect. Click "+ add a note" to annotate the week.</p>
 
 <div class="meta">
   <div class="meta-item"><span class="k">Span</span><span class="v">02026<small>–</small>02035</span></div>
@@ -368,7 +264,7 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
   <div class="meta-item"><span class="k">Notes stored</span><span class="v" id="noteCount">0<small>localStorage</small></span></div>
 </div>
 
-<div class="container" id="container">
+<div class="container">
   <div class="axis-x" id="axisX"></div>
   <div class="axis-y" id="axisY"></div>
   <div class="grid"   id="grid"></div>
@@ -376,7 +272,6 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
 
 </div></div>
 
-<!-- Note modal -->
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-head">
@@ -384,9 +279,9 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
       <button class="modal-close" id="modalClose" aria-label="Close">×</button>
     </div>
     <label class="modal-lbl" for="modalText">Note</label>
-    <textarea class="modal-input" id="modalText" placeholder="What happened this week?"></textarea>
+    <textarea class="modal-field" id="modalText" placeholder="What happened this week?"></textarea>
     <label class="modal-lbl" for="modalUrl">Link (optional)</label>
-    <input  class="modal-input" id="modalUrl" type="url" placeholder="https://...">
+    <input  class="modal-field" id="modalUrl" type="url" placeholder="https://...">
     <div class="modal-actions">
       <button class="btn-cancel" id="modalCancel">Cancel</button>
       <button class="btn-save"   id="modalSave">Save note</button>
@@ -398,189 +293,155 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
 (function () {
   'use strict';
 
-  // ── Config ─────────────────────────────────────────────────────
-  const YEARS      = 10;
-  const WEEKS      = 52;
-  const START_YEAR = 2026;
-  const STORE      = 'lg-notes-v1';
-  const SCALE      = 6;
+  var YEARS = 10, WEEKS = 52, START_YEAR = 2026, STORE = 'lg-notes-v1';
 
-  // Today's ISO week — marks the current cell with .is-today
-  function isoWeekYear(d) {
-    const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
-    const y   = tmp.getUTCFullYear();
-    const w   = Math.ceil(((tmp - new Date(Date.UTC(y, 0, 1))) / 86400000 + 1) / 7);
+  // Current ISO week
+  function isoWeek(d) {
+    var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+    var y = t.getUTCFullYear();
+    var w = Math.ceil(((t - new Date(Date.UTC(y,0,1))) / 86400000 + 1) / 7);
     return { week: w, year: y };
   }
-  const today = isoWeekYear(new Date());
+  var today = isoWeek(new Date());
 
-  // ── Build axis labels ───────────────────────────────────────────
-  const axisX = document.getElementById('axisX');
-  for (let w = 1; w <= WEEKS; w++) {
-    const span = document.createElement('span');
-    span.textContent = (w === 1 || w % 5 === 0 || w === WEEKS) ? w : '';
-    axisX.appendChild(span);
+  // Axis X
+  var axisX = document.getElementById('axisX');
+  for (var w = 1; w <= WEEKS; w++) {
+    var s = document.createElement('span');
+    s.textContent = (w === 1 || w % 5 === 0 || w === WEEKS) ? w : '';
+    axisX.appendChild(s);
   }
 
-  const axisY = document.getElementById('axisY');
-  for (let y = 0; y < YEARS; y++) {
-    const span = document.createElement('span');
-    span.textContent = '0' + (START_YEAR + y);
-    axisY.appendChild(span);
+  // Axis Y
+  var axisY = document.getElementById('axisY');
+  for (var y = 0; y < YEARS; y++) {
+    var s2 = document.createElement('span');
+    s2.textContent = '0' + (START_YEAR + y);
+    axisY.appendChild(s2);
   }
 
-  // ── Build grid cells ────────────────────────────────────────────
-  const grid = document.getElementById('grid');
-  for (let y = 0; y < YEARS; y++) {
-    const year = START_YEAR + y;
-    for (let w = 1; w <= WEEKS; w++) {
-      const a = document.createElement('a');
-      a.className  = 'c';
-      a.dataset.d  = `Week ${w}, 0${year}`;
-      a.dataset.w  = w;
-      a.dataset.y  = year;
-      if (w === today.week && year === today.year) a.classList.add('is-today');
+  // Grid cells
+  var grid = document.getElementById('grid');
+  for (var yi = 0; yi < YEARS; yi++) {
+    var year = START_YEAR + yi;
+    for (var wi = 1; wi <= WEEKS; wi++) {
+      var key = 'Week ' + wi + ', 0' + year;
+      var a = document.createElement('a');
+      a.className = 'c';
+      a.dataset.d = key;
+      if (wi === today.week && year === today.year) a.classList.add('is-today');
+
+      // Tip — pure CSS hover, no JS positioning needed
+      var tip = document.createElement('span');
+      tip.className = 'tip';
+
+      var tw = document.createElement('span');
+      tw.className = 'tip-week';
+      tw.textContent = 'Week ' + wi;
+
+      var ty = document.createElement('span');
+      ty.className = 'tip-year';
+      ty.textContent = '0' + year;
+
+      var tb = document.createElement('button');
+      tb.className = 'tip-btn';
+      tb.type = 'button';
+      tb.dataset.key = key;
+      tb.textContent = '+ add a note';
+
+      tip.appendChild(tw);
+      tip.appendChild(ty);
+      tip.appendChild(tb);
+      a.appendChild(tip);
       grid.appendChild(a);
     }
   }
 
-  // ── localStorage helpers ────────────────────────────────────────
+  // localStorage
   function loadNotes() {
     try { return JSON.parse(localStorage.getItem(STORE)) || {}; }
-    catch { return {}; }
+    catch (e) { return {}; }
   }
   function saveNotes(n) { localStorage.setItem(STORE, JSON.stringify(n)); }
 
   function applyNoteClasses(notes) {
-    document.querySelectorAll('.c').forEach(cell => {
-      const n = notes[cell.dataset.d];
+    document.querySelectorAll('.c').forEach(function (cell) {
+      var n = notes[cell.dataset.d];
       cell.classList.toggle('has-note', !!n);
       cell.classList.toggle('has-link', !!(n && n.url));
     });
   }
 
+  function updateButtons(notes) {
+    document.querySelectorAll('.tip-btn').forEach(function (btn) {
+      btn.textContent = notes[btn.dataset.key] ? 'edit note' : '+ add a note';
+    });
+  }
+
   function updateCount(notes) {
-    const el = document.getElementById('noteCount');
+    var el = document.getElementById('noteCount');
     if (el) el.childNodes[0].textContent = Object.keys(notes).length;
   }
 
-  // ── Lens overlay ────────────────────────────────────────────────
-  const lens = document.createElement('div');
-  lens.className = 'lens';
-  lens.innerHTML = '<span class="lens-title"></span><button class="lens-add"></button>';
-  document.body.appendChild(lens);
-
-  const lensTitle = lens.querySelector('.lens-title');
-  const lensAdd   = lens.querySelector('.lens-add');
-
-  let prevKey     = null;
-  let modalIsOpen = false;
-  let mouseX = 0, mouseY = 0;
-  document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
-
-  // Returns true if the mouse is currently inside the visible lens div.
-  // Used to keep the lens alive while the cursor travels from the tiny
-  // native cell (bottom of the magnified area) up to the title/button.
-  function mouseInLens() {
-    if (!lens.classList.contains('on')) return false;
-    const r = lens.getBoundingClientRect();
-    return mouseX >= r.left && mouseX <= r.right &&
-           mouseY >= r.top  && mouseY <= r.bottom;
-  }
-
-  // RAF loop: grid.querySelector('.c:hover') always resolves to the
-  // native-size <a> element (::before has pointer-events:none), so
-  // hover detection is pixel-accurate even under the scaled tile.
-  // Lens is position:fixed on body, so we use raw viewport coords.
-  function tick() {
-    if (!modalIsOpen) {
-      const hov = grid.querySelector('.c:hover');
-      if (hov) {
-        const key = hov.dataset.d;
-        if (key !== prevKey) {
-          prevKey = key;
-          const notes = loadNotes();
-          const r     = hov.getBoundingClientRect();
-          const w     = r.width  * SCALE;
-          const h     = r.height * SCALE;
-          // Tile grows upward (transform-origin: 50% 100%), so its
-          // bottom stays at r.bottom and its top is r.bottom - h.
-          lens.style.left   = (r.left + r.width / 2 - w / 2) + 'px';
-          lens.style.top    = (r.bottom - h)                  + 'px';
-          lens.style.width  = w + 'px';
-          lens.style.height = h + 'px';
-          lensTitle.textContent = key;
-          lensAdd.textContent   = notes[key] ? 'edit note' : '+ add a note';
-          lensAdd.dataset.key   = key;
-          lens.classList.add('on');
-        }
-      } else if (prevKey !== null && !mouseInLens()) {
-        // Only hide once mouse has left the lens area too —
-        // so the label stays readable while cursor travels up.
-        lens.classList.remove('on');
-        prevKey = null;
-      }
-    }
-    requestAnimationFrame(tick);
-  }
-  requestAnimationFrame(tick);
-
-  // ── Modal ───────────────────────────────────────────────────────
-  const modalBg     = document.getElementById('modalBg');
-  const modalWk     = document.getElementById('modalWk');
-  const modalText   = document.getElementById('modalText');
-  const modalUrl    = document.getElementById('modalUrl');
-  const modalClose  = document.getElementById('modalClose');
-  const modalCancel = document.getElementById('modalCancel');
-  const modalSave   = document.getElementById('modalSave');
-  let   modalKey    = null;
+  // Modal
+  var modalBg     = document.getElementById('modalBg');
+  var modalWk     = document.getElementById('modalWk');
+  var modalText   = document.getElementById('modalText');
+  var modalUrl    = document.getElementById('modalUrl');
+  var modalClose  = document.getElementById('modalClose');
+  var modalCancel = document.getElementById('modalCancel');
+  var modalSave   = document.getElementById('modalSave');
+  var modalKey    = null;
 
   function openModal(key) {
-    const notes    = loadNotes();
-    const existing = notes[key] || {};
-    modalKey            = key;
+    var notes = loadNotes();
+    var existing = notes[key] || {};
+    modalKey = key;
     modalWk.textContent = key;
-    modalText.value     = existing.text || '';
-    modalUrl.value      = existing.url  || '';
-    modalIsOpen = true;
-    lens.classList.remove('on');
-    prevKey = null;
+    modalText.value = existing.text || '';
+    modalUrl.value  = existing.url  || '';
     modalBg.classList.add('open');
-    setTimeout(() => modalText.focus(), 50);
+    setTimeout(function () { modalText.focus(); }, 50);
   }
 
   function closeModal() {
     modalBg.classList.remove('open');
-    modalKey    = null;
-    modalIsOpen = false;
+    modalKey = null;
   }
 
   function saveNote() {
     if (!modalKey) return;
-    const text  = modalText.value.trim();
-    const url   = modalUrl.value.trim();
-    const notes = loadNotes();
-    if (text || url) { notes[modalKey] = { text, url }; }
+    var text  = modalText.value.trim();
+    var url   = modalUrl.value.trim();
+    var notes = loadNotes();
+    if (text || url) { notes[modalKey] = { text: text, url: url }; }
     else             { delete notes[modalKey]; }
     saveNotes(notes);
     applyNoteClasses(notes);
+    updateButtons(notes);
     updateCount(notes);
     closeModal();
   }
 
-  lensAdd.addEventListener('click',   () => { if (lensAdd.dataset.key) openModal(lensAdd.dataset.key); });
+  // Event delegation — one listener for all 520 buttons
+  grid.addEventListener('click', function (e) {
+    var btn = e.target.closest('.tip-btn');
+    if (btn && btn.dataset.key) openModal(btn.dataset.key);
+  });
+
   modalClose.addEventListener('click',  closeModal);
   modalCancel.addEventListener('click', closeModal);
   modalSave.addEventListener('click',   saveNote);
-  modalBg.addEventListener('click', e => { if (e.target === modalBg) closeModal(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+  modalBg.addEventListener('click', function (e) { if (e.target === modalBg) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 
-  // ── Init ────────────────────────────────────────────────────────
-  const notes = loadNotes();
+  // Init
+  var notes = loadNotes();
   applyNoteClasses(notes);
+  updateButtons(notes);
   updateCount(notes);
-})();
+}());
 </script>
 </body>
 </html>
