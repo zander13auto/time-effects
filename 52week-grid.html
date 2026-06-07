@@ -228,11 +228,25 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 .reset-btn { background: none; border: 1px solid rgba(232,192,140,.2); color: rgba(232,192,140,.45); font-size: 10px; padding: 3px 9px; border-radius: 3px; cursor: pointer; font-family: var(--ss); letter-spacing: .04em; line-height: 1.6; }
 .reset-btn:hover { border-color: #b03a2e; color: #e07060; }
 
-/* Google Calendar links */
-.lens-gcal { font-family: var(--ss); font-size: 10px; color: rgba(16,21,23,.38); text-decoration: none; letter-spacing: .02em; pointer-events: auto; text-align: center; }
-.lens-gcal:hover { color: rgba(16,21,23,.75); text-decoration: underline; }
+/* Google Calendar link (modal only) */
 .modal-gcal { font-size: 12px; color: rgba(232,192,140,.45); text-decoration: none; display: inline-block; margin-top: 3px; }
 .modal-gcal:hover { color: var(--ac); text-decoration: underline; }
+
+/* Destructive small button (clear entry) */
+.btn-delete-sm { background: none; border: 1px solid rgba(176,58,46,.3); color: rgba(224,112,96,.65); padding: 7px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; font-family: var(--ss); }
+.btn-delete-sm:hover { border-color: #b03a2e; color: #e07060; }
+
+/* Search */
+.meta-search { display: flex; flex-direction: column; gap: 4px; margin-left: auto; }
+.search-input { background: rgba(232,192,140,.04); border: 1px solid var(--bd); border-radius: 4px; color: #fff; font-family: var(--ss); font-size: 12px; padding: 5px 10px; outline: none; width: 170px; }
+.search-input:focus { border-color: rgba(232,192,140,.4); }
+.search-input::placeholder { color: rgba(255,255,255,.2); }
+/* Dim non-matching cells when search is active */
+.search-active .c:not(.search-match)::before { opacity: 0.2; }
+.c.search-match::before { box-shadow: 0 0 0 2px var(--bl), 0 0 10px rgba(56,88,233,.45) !important; border-color: var(--bl) !important; }
+
+/* Reset button below grid */
+.grid-footer { display: flex; justify-content: flex-end; margin-top: 10px; }
 
 /* Lens date range */
 .lens-dates { font-family: var(--ss); font-size: 11px; color: rgba(16,21,23,.48); letter-spacing: .03em; }
@@ -289,8 +303,9 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     </div>
     <input type="file" id="importFile" accept=".csv,.ics,text/calendar" style="display:none">
   </div>
-  <div class="meta-reset">
-    <button class="reset-btn" id="resetBtn" style="display:none" title="Clear all saved entries">↺ Reset entries</button>
+  <div class="meta-search">
+    <span class="k">Search</span>
+    <input class="search-input" id="searchInput" type="search" placeholder="entries, dates…">
   </div>
 </div>
 
@@ -301,6 +316,10 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 </div>
 
 </div></div>
+
+<div class="grid-footer">
+  <button class="reset-btn" id="resetBtn" style="display:none" title="Clear all saved entries">↺ Reset entries</button>
+</div>
 
 <!-- Floating lens -->
 <div class="lens" id="lens">
@@ -314,8 +333,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="lens-note-txt" id="lensNoteTxt"></span>
     <a class="lens-link-txt" id="lensLinkTxt" target="_blank" rel="noopener"></a>
   </div>
-  <div class="lens-cta" id="lensCta">click to add an entry</div>
-  <a class="lens-gcal" id="lensGcal" href="#" target="_blank" rel="noopener">↗ open in Google Calendar</a>
+  <div class="lens-cta" id="lensCta">click to add an entry · or see this week in Google Cal</div>
 </div>
 
 <!-- Modal -->
@@ -335,9 +353,18 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         <p class="note-display" id="viewNote"></p>
         <a class="link-display" id="viewLink" target="_blank" rel="noopener" style="display:none"></a>
       </div>
-      <div class="modal-actions">
+      <!-- Normal view actions -->
+      <div class="modal-actions" id="viewActionsA">
+        <button class="btn-delete-sm" id="btnClearEntry">Clear entry</button>
+        <span style="flex:1"></span>
         <button class="btn-edit" id="btnEdit">Edit entry</button>
         <button class="btn-done" id="btnDone">Close</button>
+      </div>
+      <!-- Confirm clear -->
+      <div class="modal-actions" id="viewActionsB" style="display:none">
+        <span style="font-size:13px;color:#e07060;flex:1;align-self:center">Delete this entry? Cannot be undone.</span>
+        <button class="btn-cancel" id="btnClearNo">Cancel</button>
+        <button class="btn-delete" id="btnClearYes">Delete</button>
       </div>
     </div>
 
@@ -713,7 +740,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     var wn = parseInt(parts[0].replace('Week ', ''), 10);
     var yn = parseInt(parts[1], 10);
     document.getElementById('lensDates').textContent = formatWeekRange(yn, wn);
-    document.getElementById('lensGcal').href = isoWeekToGCalURL(yn, wn);
+    // (Google Cal URL set in openModal)
     var note = loadNotes()[key];
     if (note && (note.text || note.url)) {
       lensPreview.classList.add('on');
@@ -797,6 +824,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   function showView(note) {
     modeView.style.display = '';
     modeEdit.style.display = 'none';
+    document.getElementById('viewActionsA').style.display = '';
+    document.getElementById('viewActionsB').style.display = 'none';
     viewNote.textContent = note.text || '';
     if (note.url) {
       viewLink.href = note.url;
@@ -864,6 +893,17 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   }
   function padMD(n) { return n < 10 ? '0' + n : '' + n; }
 
+  /* ── Description truncation ──────────────────────────────────── */
+  function truncDesc(s) {
+    if (!s) return '';
+    s = s.replace(/<[^>]+>/g,'').replace(/\\n/g,' ').replace(/\\,/g,',').replace(/\\\\/g,'\\').replace(/\s+/g,' ').trim();
+    if (!s) return '';
+    if (s.length <= 72) return s;
+    var cut = s.substring(0, 72);
+    var sp  = cut.lastIndexOf(' ');
+    return (sp > 42 ? cut.substring(0, sp) : cut) + '…';
+  }
+
   /* ── ICS parser ───────────────────────────────────────────────── */
   function parseICS(text) {
     // Normalize line endings, then unfold continuation lines (RFC 5545)
@@ -882,7 +922,9 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       var prop = line.substring(0, colon).toUpperCase();
       var val  = line.substring(colon + 1);
       if (prop === 'SUMMARY') {
-        cur.summary = val.replace(/\\,/g,',').replace(/\\n/g,'\n').replace(/\\\\/g,'\\').trim();
+        cur.summary = val.replace(/\\,/g,',').replace(/\\n/g,' ').replace(/\\\\/g,'\\').trim();
+      } else if (prop === 'DESCRIPTION' || prop.indexOf('DESCRIPTION;') === 0) {
+        cur.description = val;
       } else if (prop === 'DTSTART' || prop.indexOf('DTSTART;') === 0) {
         // Strip time portion — we only need the date (YYYYMMDD)
         var dateOnly = val.replace(/T.*$/, '');
@@ -1023,10 +1065,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         for (var i = 0; i < evts.length; i++) {
           var ev2 = evts[i];
           if (!ev2.dt || isNaN(ev2.dt.getTime())) continue;
-          var iw  = isoWeek(ev2.dt);
-          var key = 'Week ' + iw.week + ', 0' + iw.year;
+          var iw   = isoWeek(ev2.dt);
+          var key  = 'Week ' + iw.week + ', 0' + iw.year;
+          var line = ev2.summary;
+          if (ev2.description) { var d = truncDesc(ev2.description); if (d) line += '\n' + d; }
           if (!groups[key]) groups[key] = [];
-          groups[key].push(ev2.summary);
+          groups[key].push(line);
           parsed++;
         }
         openImportModal(groups, parsed);
@@ -1036,11 +1080,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         var lines = text.split(/\r?\n/);
         if (lines.length < 2) { alert('No data found in CSV.'); return; }
         var headers    = parseCSVLine(lines[0]);
-        var colSubject = -1, colStart = -1;
+        var colSubject = -1, colStart = -1, colDesc = -1;
         for (var h = 0; h < headers.length; h++) {
           var hdr = headers[h].trim().toLowerCase();
-          if (hdr === 'subject')    colSubject = h;
-          if (hdr === 'start date') colStart   = h;
+          if (hdr === 'subject')     colSubject = h;
+          if (hdr === 'start date')  colStart   = h;
+          if (hdr === 'description') colDesc    = h;
         }
         if (colSubject < 0 || colStart < 0) {
           alert('CSV must have "Subject" and "Start Date" columns.\nSupported formats: Google Calendar CSV, Outlook CSV.');
@@ -1058,10 +1103,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
           if (mdy)  dt2 = new Date(Date.UTC(+mdy[3],  +mdy[1]-1,  +mdy[2]));
           else if (isoD) dt2 = new Date(Date.UTC(+isoD[1], +isoD[2]-1, +isoD[3]));
           if (!dt2 || isNaN(dt2.getTime())) continue;
-          var iw2  = isoWeek(dt2);
-          var key2 = 'Week ' + iw2.week + ', 0' + iw2.year;
+          var iw2   = isoWeek(dt2);
+          var key2  = 'Week ' + iw2.week + ', 0' + iw2.year;
+          var line2 = subject;
+          if (colDesc >= 0) { var d2 = truncDesc(fields[colDesc] || ''); if (d2) line2 += '\n' + d2; }
           if (!groups[key2]) groups[key2] = [];
-          groups[key2].push(subject);
+          groups[key2].push(line2);
           parsed++;
         }
         openImportModal(groups, parsed);
@@ -1101,6 +1148,43 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     a.href = url; a.download = 'life-grid-entries.csv';
     document.body.appendChild(a); a.click();
     document.body.removeChild(a); URL.revokeObjectURL(url);
+  });
+
+  /* ── Search ───────────────────────────────────────────────────── */
+  function applySearch() {
+    var q    = document.getElementById('searchInput').value.trim().toLowerCase();
+    var gridEl = document.getElementById('grid');
+    gridEl.classList.toggle('search-active', q.length > 0);
+    var cells = document.querySelectorAll('.c');
+    var notes = loadNotes();
+    for (var i = 0; i < cells.length; i++) {
+      var cell = cells[i];
+      if (!q) { cell.classList.remove('search-match'); continue; }
+      var n   = notes[cell.dataset.d] || {};
+      var hay = (cell.dataset.d + ' ' + (n.text || '') + ' ' + (n.url || '')).toLowerCase();
+      cell.classList.toggle('search-match', hay.indexOf(q) >= 0);
+    }
+  }
+  document.getElementById('searchInput').addEventListener('input', applySearch);
+
+  /* ── Clear entry (within view modal) ─────────────────────────── */
+  document.getElementById('btnClearEntry').addEventListener('click', function () {
+    document.getElementById('viewActionsA').style.display = 'none';
+    document.getElementById('viewActionsB').style.display = '';
+  });
+  document.getElementById('btnClearNo').addEventListener('click', function () {
+    document.getElementById('viewActionsA').style.display = '';
+    document.getElementById('viewActionsB').style.display = 'none';
+  });
+  document.getElementById('btnClearYes').addEventListener('click', function () {
+    if (!modalKey) return;
+    var notes = loadNotes();
+    delete notes[modalKey];
+    saveNotes(notes);
+    refreshCells(notes);
+    applySearch();
+    if (currentCell) updateLens(currentCell);
+    closeModal();
   });
 
   /* ── Reset notes modal ────────────────────────────────────────── */
