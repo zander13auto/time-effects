@@ -36,14 +36,13 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .axis-x { position: absolute; top: 14px; left: 64px; right: 24px; display: grid; grid-template-columns: repeat(52,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: center; }
 .axis-y { position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px; display: grid; grid-template-rows: repeat(10,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: right; padding-right: 10px; align-items: center; }
 
-/* Grid — rows prevent sibling selectors from wrapping across years */
+/* Grid — one .row per year; sibling selectors stay within each row */
 .grid { display: flex; flex-direction: column; background: rgba(232,192,140,.18); padding: 2px; border-radius: 3px; gap: 2px; }
 .row  { display: grid; grid-template-columns: repeat(52,1fr); gap: 2px; }
 
-/* ── Cell ───────────────────────────────────────────────────────────
-   .c stays at native size for correct pointer hit-detection.
-   All visual scaling lives in ::before (pointer-events: none).
-   transform-origin 50% 100% → tile grows upward from bottom-center.
+/* ── Cell ─────────────────────────────────────────────────────────
+   .c is the hit target (native size). All visuals live in ::before.
+   pointer-events stays on the native-size element only.
 ──────────────────────────────────────────────────────────────────── */
 .c {
   aspect-ratio: 1/1;
@@ -52,7 +51,8 @@ html, body { margin: 0; padding: 0; background: #101517; }
   position: relative;
   font-size: 0;
   line-height: 1;
-  overflow: visible;
+  display: block;
+  cursor: default;
 }
 .c::before {
   content: '';
@@ -74,6 +74,7 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .c.has-note.has-link::before { background: var(--ac); }
 .c.is-today::before          { outline: 2px solid var(--bl); outline-offset: -1px; }
 
+/* Fisheye hover — visual only, contained within .row */
 .c:hover               { z-index: 9; }
 .c:hover::before {
   transform: scale(6);
@@ -82,97 +83,96 @@ html, body { margin: 0; padding: 0; background: #101517; }
   border-radius: 5px;
   box-shadow: 0 0 0 1px var(--ac), 0 12px 36px rgba(0,0,0,.8);
 }
+.c:hover + .c, .c:has(+ .c:hover)
+  { z-index: 7; }
+.c:hover + .c::before, .c:has(+ .c:hover)::before
+  { transform: scale(3.6); background: rgba(232,192,140,.75); border-color: rgba(232,192,140,.85); box-shadow: 0 6px 20px rgba(0,0,0,.55); }
+.c:hover + .c + .c, .c:has(+ .c + .c:hover)
+  { z-index: 5; }
+.c:hover + .c + .c::before, .c:has(+ .c + .c:hover)::before
+  { transform: scale(2.2); background: rgba(232,192,140,.45); }
+.c:hover + .c + .c + .c, .c:has(+ .c + .c + .c:hover)
+  { z-index: 3; }
+.c:hover + .c + .c + .c::before, .c:has(+ .c + .c + .c:hover)::before
+  { transform: scale(1.45); background: rgba(232,192,140,.22); }
 
-/* Fisheye neighbours — contained within .row, no year-wrap bleed */
-.c:hover + .c,
-.c:has(+ .c:hover)           { z-index: 7; }
-.c:hover + .c::before,
-.c:has(+ .c:hover)::before   { transform: scale(3.6); background: rgba(232,192,140,.75); border-color: rgba(232,192,140,.85); box-shadow: 0 6px 20px rgba(0,0,0,.55); }
-
-.c:hover + .c + .c,
-.c:has(+ .c + .c:hover)          { z-index: 5; }
-.c:hover + .c + .c::before,
-.c:has(+ .c + .c:hover)::before  { transform: scale(2.2); background: rgba(232,192,140,.45); }
-
-.c:hover + .c + .c + .c,
-.c:has(+ .c + .c + .c:hover)         { z-index: 3; }
-.c:hover + .c + .c + .c::before,
-.c:has(+ .c + .c + .c:hover)::before { transform: scale(1.45); background: rgba(232,192,140,.22); }
-
-/* ── Tip overlay ─────────────────────────────────────────────────────
-   Sized to match the 6× magnified tile exactly:
-     width/height = 600% of the native cell
-     bottom: 0 matches transform-origin: 50% 100%
-   Always pointer-events: none — the .tip NEVER intercepts cursor
-   events, so left/right navigation stays smooth (no cell-skip).
-   Only .tip-btn and .tip-link have pointer-events: auto; both sit
-   in the lower portion of the tile, reachable from the native cell.
+/* ── Floating lens ────────────────────────────────────────────────
+   A single fixed-size panel that JS positions above the cursor.
+   pointer-events:none on container so the cursor always lands on
+   the native .c element beneath, giving smooth cell-by-cell tracking
+   at any window size. Only btn and link have pointer-events:auto.
 ──────────────────────────────────────────────────────────────────── */
-.tip {
-  position: absolute;
-  width: 600%;
-  height: 600%;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  pointer-events: none;        /* never blocks left/right navigation */
-  z-index: 10;
-  display: flex;
+.lens {
+  position: fixed;
+  width: 168px;
+  padding: 18px 16px 14px;
+  background: var(--ac);
+  border-radius: 9px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25), 0 12px 36px rgba(0,0,0,.7);
+  z-index: 100;
+  display: none;
+  pointer-events: none;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 14% 10% 11%;
-  opacity: 0;
+  gap: 8px;
 }
-.c:hover .tip { opacity: 1; }  /* no pointer-events change — just visual */
+.lens.on { display: flex; }
 
-.tip-head { display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: none; }
-.tip-week { font-family: var(--sf); font-size: 13px; font-weight: 600; color: #101517; text-align: center; line-height: 1.2; }
-.tip-year { font-family: var(--ss); font-size: 9px; color: rgba(16,21,23,.6); }
+.lens-head { display: flex; flex-direction: column; align-items: center; gap: 1px; width: 100%; }
+.lens-week { font-family: var(--sf); font-size: 18px; font-weight: 600; color: #101517; text-align: center; line-height: 1.15; }
+.lens-year { font-family: var(--ss); font-size: 11px; color: rgba(16,21,23,.55); }
 
-/* Note preview — shown when a note exists */
-.tip-body { display: none; flex-direction: column; align-items: center; gap: 2px; width: 90%; pointer-events: none; }
-.tip-body.on { display: flex; }
-.tip-note {
+.lens-preview {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  border-top: 1px solid rgba(16,21,23,.12);
+  padding-top: 7px;
+}
+.lens-preview.on { display: flex; }
+.lens-note-txt {
   font-family: var(--ss);
-  font-size: 8px;
+  font-size: 10px;
   color: rgba(16,21,23,.75);
   text-align: center;
+  width: 100%;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  width: 100%;
   line-height: 1.35;
 }
-.tip-link {
+.lens-link-txt {
   font-family: var(--ss);
-  font-size: 8px;
-  color: rgba(16,21,23,.6);
+  font-size: 10px;
+  color: rgba(16,21,23,.55);
   text-decoration: underline;
-  pointer-events: auto;        /* clickable link */
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 90%;
+  max-width: 100%;
+  pointer-events: auto;
   cursor: pointer;
 }
-.tip-link:hover { color: #101517; }
+.lens-link-txt:hover { color: #101517; }
 
-.tip-btn {
+.lens-btn {
   font-family: var(--ss);
-  font-size: 9px;
-  color: rgba(16,21,23,.55);
-  background: none;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(16,21,23,.6);
+  background: rgba(16,21,23,.08);
   border: none;
+  border-radius: 4px;
   cursor: pointer;
-  text-decoration: underline;
-  padding: 2px 4px;
+  padding: 4px 10px;
   white-space: nowrap;
-  line-height: 1;
-  pointer-events: auto;        /* clickable button */
+  pointer-events: auto;
+  margin-top: 2px;
 }
-.tip-btn:hover { color: #101517; }
+.lens-btn:hover { background: rgba(16,21,23,.15); color: #101517; }
 
 /* ── Modal ──────────────────────────────────────────────────────── */
 .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 200; align-items: center; justify-content: center; }
@@ -182,30 +182,42 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .modal-wk   { font-family: var(--sf); font-size: 20px; color: var(--ac); font-weight: 400; line-height: 1.2; }
 .modal-close { background: none; border: none; color: #5a6370; font-size: 22px; cursor: pointer; padding: 0; line-height: 1; }
 .modal-close:hover { color: #fff; }
+
+/* View mode */
+.note-display { font-family: var(--ss); font-size: 15px; color: #dcdcde; line-height: 1.65; margin: 0 0 12px; white-space: pre-wrap; }
+.link-display { display: block; font-size: 14px; color: var(--ac); text-decoration: underline; margin-bottom: 24px; word-break: break-all; }
+.link-display:hover { color: #f0cfa0; }
+
+/* Edit mode */
 .modal-lbl  { display: block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: rgba(232,192,140,.65); font-weight: 600; margin-bottom: 7px; }
 .modal-field { width: 100%; background: var(--bg); border: 1px solid var(--bd); border-radius: 6px; color: #dcdcde; font-family: var(--ss); padding: 11px 14px; outline: none; margin-bottom: 14px; }
 .modal-field:focus { border-color: rgba(232,192,140,.45); }
 .modal-field::placeholder { color: #384048; }
 textarea.modal-field { font-size: 15px; line-height: 1.6; resize: vertical; min-height: 96px; }
 input.modal-field    { font-size: 14px; margin-bottom: 24px; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; align-items: center; }
 .btn-cancel { background: transparent; border: 1px solid rgba(232,192,140,.2); color: #7a8390; padding: 9px 18px; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: var(--ss); }
 .btn-cancel:hover { border-color: rgba(232,192,140,.45); color: #fff; }
-.btn-save { background: var(--ac); border: none; color: var(--bg); padding: 9px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--ss); }
+.btn-edit   { background: transparent; border: 1px solid rgba(232,192,140,.3); color: var(--ac); padding: 9px 18px; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: var(--ss); }
+.btn-edit:hover { border-color: var(--ac); }
+.btn-done   { background: rgba(232,192,140,.12); border: none; color: var(--ac); padding: 9px 20px; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: var(--ss); }
+.btn-done:hover { background: rgba(232,192,140,.2); }
+.btn-save   { background: var(--ac); border: none; color: var(--bg); padding: 9px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--ss); }
 .btn-save:hover { background: #f0cfa0; }
 </style>
 </head>
 <body>
 <div class="root"><div class="wrap">
 
-<span class="eyebrow">Prototype v20260607·1724 · 52 × 10 · Fisheye hover · JS notes</span>
+<span class="eyebrow">Prototype v20260607·1821 · 52 × 10 · Fisheye hover · JS notes</span>
 <h1 class="title">A decade, <em>one week at a time.</em></h1>
-<p class="lead">520 cells spanning one decade. Hover any cell to magnify. Click "+ add a note" to annotate the week with text and a link.</p>
+<p class="lead">520 cells spanning one decade. Hover any cell to magnify. Click the panel to annotate a week with a note and link.</p>
 
 <div class="meta">
   <div class="meta-item"><span class="k">Span</span><span class="v">02026<small>–</small>02035</span></div>
   <div class="meta-item"><span class="k">Weeks</span><span class="v">520</span></div>
-  <div class="meta-item"><span class="k">Notes stored</span><span class="v" id="noteCount">0<small>localStorage</small></span></div>
+  <div class="meta-item"><span class="k">Notes</span><span class="v" id="noteCount">0<small>saved</small></span></div>
 </div>
 
 <div class="container">
@@ -216,19 +228,47 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 
 </div></div>
 
+<!-- Floating lens — single instance, JS-positioned above cursor -->
+<div class="lens" id="lens" aria-live="polite">
+  <div class="lens-head">
+    <span class="lens-week" id="lensWeek"></span>
+    <span class="lens-year" id="lensYear"></span>
+  </div>
+  <div class="lens-preview" id="lensPreview">
+    <span class="lens-note-txt" id="lensNoteTxt"></span>
+    <a  class="lens-link-txt" id="lensLinkTxt" target="_blank" rel="noopener"></a>
+  </div>
+  <button class="lens-btn" id="lensBtn" type="button">+ add a note</button>
+</div>
+
+<!-- Modal -->
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-head">
       <span class="modal-wk" id="modalWk"></span>
       <button class="modal-close" id="modalClose" aria-label="Close">×</button>
     </div>
-    <label class="modal-lbl" for="modalText">Note</label>
-    <textarea class="modal-field" id="modalText" placeholder="What happened this week?"></textarea>
-    <label class="modal-lbl" for="modalUrl">Link (optional)</label>
-    <input  class="modal-field" id="modalUrl" type="url" placeholder="https://...">
-    <div class="modal-actions">
-      <button class="btn-cancel" id="modalCancel">Cancel</button>
-      <button class="btn-save"   id="modalSave">Save note</button>
+
+    <!-- View state: shown when an existing note is opened -->
+    <div id="modeView" style="display:none">
+      <p class="note-display" id="viewNote"></p>
+      <a class="link-display" id="viewLink" target="_blank" rel="noopener" style="display:none"></a>
+      <div class="modal-actions">
+        <button class="btn-edit" id="btnEdit">Edit note</button>
+        <button class="btn-done" id="btnDone">Close</button>
+      </div>
+    </div>
+
+    <!-- Edit state: shown for new notes or after clicking "Edit note" -->
+    <div id="modeEdit">
+      <label class="modal-lbl" for="modalText">Note</label>
+      <textarea class="modal-field" id="modalText" placeholder="What happened this week?"></textarea>
+      <label class="modal-lbl" for="modalUrl">Link (optional)</label>
+      <input  class="modal-field" id="modalUrl" type="url" placeholder="https://...">
+      <div class="modal-actions">
+        <button class="btn-cancel" id="modalCancel">Cancel</button>
+        <button class="btn-save"   id="modalSave">Save note</button>
+      </div>
     </div>
   </div>
 </div>
@@ -239,6 +279,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 
   var YEARS = 10, WEEKS = 52, START_YEAR = 2026, STORE = 'lg-notes-v1';
 
+  /* ── ISO week ─────────────────────────────────────────────────── */
   function isoWeek(d) {
     var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
@@ -248,122 +289,191 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   }
   var today = isoWeek(new Date());
 
-  // Axis X
+  /* ── Axes ─────────────────────────────────────────────────────── */
   var axisX = document.getElementById('axisX');
-  for (var w = 1; w <= WEEKS; w++) {
-    var s = document.createElement('span');
-    s.textContent = (w === 1 || w % 5 === 0 || w === WEEKS) ? w : '';
-    axisX.appendChild(s);
+  for (var wx = 1; wx <= WEEKS; wx++) {
+    var sx = document.createElement('span');
+    sx.textContent = (wx === 1 || wx % 5 === 0 || wx === WEEKS) ? wx : '';
+    axisX.appendChild(sx);
   }
-
-  // Axis Y
   var axisY = document.getElementById('axisY');
-  for (var y = 0; y < YEARS; y++) {
+  for (var yx = 0; yx < YEARS; yx++) {
     var sy = document.createElement('span');
-    sy.textContent = '0' + (START_YEAR + y);
+    sy.textContent = '0' + (START_YEAR + yx);
     axisY.appendChild(sy);
   }
 
-  // Grid — one .row per year keeps fisheye sibling selectors within the row
+  /* ── Grid ─────────────────────────────────────────────────────── */
+  // One .row per year — sibling CSS selectors stay within each row,
+  // preventing the fisheye effect from bleeding across year boundaries.
   var grid = document.getElementById('grid');
   for (var yi = 0; yi < YEARS; yi++) {
     var year = START_YEAR + yi;
     var row = document.createElement('div');
     row.className = 'row';
-
     for (var wi = 1; wi <= WEEKS; wi++) {
-      var key = 'Week ' + wi + ', 0' + year;
       var a = document.createElement('a');
       a.className = 'c';
-      a.dataset.d = key;
+      a.dataset.d = 'Week ' + wi + ', 0' + year;
       if (wi === today.week && year === today.year) a.classList.add('is-today');
-
-      // Tip: pointer-events:none on container, auto only on btn + link
-      var tip      = document.createElement('span');   tip.className = 'tip';
-      var head     = document.createElement('span');   head.className = 'tip-head';
-      var tipWeek  = document.createElement('span');   tipWeek.className = 'tip-week'; tipWeek.textContent = 'Week ' + wi;
-      var tipYear  = document.createElement('span');   tipYear.className = 'tip-year'; tipYear.textContent = '0' + year;
-      var body     = document.createElement('span');   body.className = 'tip-body';
-      var tipNote  = document.createElement('span');   tipNote.className = 'tip-note';
-      var tipLink  = document.createElement('a');      tipLink.className = 'tip-link'; tipLink.target = '_blank'; tipLink.style.display = 'none';
-      var btn      = document.createElement('button'); btn.className = 'tip-btn'; btn.type = 'button'; btn.dataset.key = key; btn.textContent = '+ add a note';
-
-      head.appendChild(tipWeek);
-      head.appendChild(tipYear);
-      body.appendChild(tipNote);
-      body.appendChild(tipLink);
-      tip.appendChild(head);
-      tip.appendChild(body);
-      tip.appendChild(btn);
-      a.appendChild(tip);
       row.appendChild(a);
     }
     grid.appendChild(row);
   }
 
-  // localStorage
+  /* ── localStorage ─────────────────────────────────────────────── */
   function loadNotes() {
     try { return JSON.parse(localStorage.getItem(STORE)) || {}; }
     catch (e) { return {}; }
   }
   function saveNotes(n) { localStorage.setItem(STORE, JSON.stringify(n)); }
 
-  function refreshUI(notes) {
-    document.querySelectorAll('.c').forEach(function (cell) {
-      var key  = cell.dataset.d;
-      var note = notes[key];
-      var btn      = cell.querySelector('.tip-btn');
-      var body     = cell.querySelector('.tip-body');
-      var tipNote  = cell.querySelector('.tip-note');
-      var tipLink  = cell.querySelector('.tip-link');
+  function refreshCells(notes) {
+    var cells = document.querySelectorAll('.c');
+    for (var i = 0; i < cells.length; i++) {
+      var cell = cells[i];
+      var note = notes[cell.dataset.d];
+      var hasNote = !!(note && (note.text || note.url));
+      var hasLink = !!(note && note.url);
+      cell.classList.toggle('has-note', hasNote);
+      cell.classList.toggle('has-link', hasLink);
+    }
+    var nc = document.getElementById('noteCount');
+    if (nc) nc.innerHTML = Object.keys(notes).length + '<small>saved</small>';
+  }
 
-      cell.classList.toggle('has-note', !!(note && (note.text || note.url)));
-      cell.classList.toggle('has-link', !!(note && note.url));
+  /* ── Floating lens ────────────────────────────────────────────── */
+  // The lens is a single fixed-position panel positioned by JS above
+  // the cursor. pointer-events:none on the container means the cursor
+  // always lands on the native .c element beneath it — smooth tracking
+  // at any viewport size. Only lensBtn and lensLinkTxt are interactive.
 
-      if (note && (note.text || note.url)) {
-        btn.textContent = 'edit note';
-        body.classList.add('on');
-        tipNote.textContent = note.text || '';
-        if (note.url) {
-          tipLink.href = note.url;
-          tipLink.textContent = '↗ ' + note.url.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0];
-          tipLink.style.display = '';
-        } else {
-          tipLink.style.display = 'none';
-        }
+  var lens        = document.getElementById('lens');
+  var lensWeek    = document.getElementById('lensWeek');
+  var lensYear    = document.getElementById('lensYear');
+  var lensPreview = document.getElementById('lensPreview');
+  var lensNoteTxt = document.getElementById('lensNoteTxt');
+  var lensLinkTxt = document.getElementById('lensLinkTxt');
+  var lensBtn     = document.getElementById('lensBtn');
+
+  var currentCell = null;
+  var LENS_GAP    = 14;  // px between cursor and bottom of lens
+
+  function updateLens(cell) {
+    var key   = cell.dataset.d;
+    var parts = key.split(', ');
+    lensWeek.textContent = parts[0];
+    lensYear.textContent = parts[1];
+    lensBtn.dataset.key  = key;
+
+    var note = loadNotes()[key];
+    if (note && (note.text || note.url)) {
+      lensBtn.textContent = 'see note';
+      lensPreview.classList.add('on');
+      lensNoteTxt.textContent = note.text || '';
+      if (note.url) {
+        lensLinkTxt.href = note.url;
+        lensLinkTxt.textContent = '↗ ' + note.url.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0];
+        lensLinkTxt.style.display = '';
       } else {
-        btn.textContent = '+ add a note';
-        body.classList.remove('on');
-        tipNote.textContent = '';
-        tipLink.style.display = 'none';
+        lensLinkTxt.style.display = 'none';
       }
-    });
-
-    var el = document.getElementById('noteCount');
-    if (el) el.childNodes[0].textContent = Object.keys(notes).length;
+    } else {
+      lensBtn.textContent = '+ add a note';
+      lensPreview.classList.remove('on');
+    }
   }
 
-  // Modal
-  var modalBg     = document.getElementById('modalBg');
-  var modalWk     = document.getElementById('modalWk');
-  var modalText   = document.getElementById('modalText');
-  var modalUrl    = document.getElementById('modalUrl');
-  var modalClose  = document.getElementById('modalClose');
-  var modalCancel = document.getElementById('modalCancel');
-  var modalSave   = document.getElementById('modalSave');
-  var modalKey    = null;
+  function positionLens(mx, my) {
+    var lh = lens.offsetHeight;
+    var lw = lens.offsetWidth;
+    var top  = my - lh - LENS_GAP;
+    var left = mx - lw / 2;
+    // Clamp to viewport
+    var maxLeft = window.innerWidth  - lw - 8;
+    var maxTop  = window.innerHeight - lh - 8;
+    left = Math.max(8, Math.min(left, maxLeft));
+    top  = Math.max(8, Math.min(top,  maxTop));
+    lens.style.left = left + 'px';
+    lens.style.top  = top  + 'px';
+  }
 
-  function openModal(key) {
+  // Track cursor — fires continuously so the lens follows the mouse.
+  // Because lens has pointer-events:none, e.target is always the
+  // underlying page element (the .c cell), giving accurate detection.
+  document.addEventListener('mousemove', function (e) {
+    var t = e.target;
+
+    // If cursor is over an interactive lens element, keep the lens
+    // stable — don't update or hide it.
+    if (t === lensBtn || t === lensLinkTxt) return;
+
+    // Find nearest .c ancestor
+    var cell = t && t.closest ? t.closest('.c') : null;
+
+    if (cell) {
+      if (cell !== currentCell) {
+        currentCell = cell;
+        updateLens(cell);
+      }
+      positionLens(e.clientX, e.clientY);
+      lens.classList.add('on');
+    } else {
+      lens.classList.remove('on');
+      currentCell = null;
+    }
+  });
+
+  /* ── Modal ────────────────────────────────────────────────────── */
+  var modalBg   = document.getElementById('modalBg');
+  var modalWk   = document.getElementById('modalWk');
+  var modeView  = document.getElementById('modeView');
+  var modeEdit  = document.getElementById('modeEdit');
+  var viewNote  = document.getElementById('viewNote');
+  var viewLink  = document.getElementById('viewLink');
+  var modalText = document.getElementById('modalText');
+  var modalUrl  = document.getElementById('modalUrl');
+  var modalKey  = null;
+  var hadNote   = false;  // was there already a note when modal opened?
+
+  function openModal(key, startInEdit) {
     var notes = loadNotes();
-    var ex = notes[key] || {};
-    modalKey = key;
+    var note  = notes[key];
+    modalKey  = key;
+    hadNote   = !!(note && (note.text || note.url));
     modalWk.textContent = key;
-    modalText.value = ex.text || '';
-    modalUrl.value  = ex.url  || '';
+
+    if (hadNote && !startInEdit) {
+      showView(note);
+    } else {
+      showEdit(note || {});
+    }
     modalBg.classList.add('open');
-    setTimeout(function () { modalText.focus(); }, 50);
   }
+
+  function showView(note) {
+    modeView.style.display = '';
+    modeEdit.style.display = 'none';
+    viewNote.textContent = note.text || '';
+    if (note.url) {
+      viewLink.href = note.url;
+      viewLink.textContent = note.url;
+      viewLink.style.display = '';
+    } else {
+      viewLink.style.display = 'none';
+    }
+  }
+
+  function showEdit(note) {
+    modeView.style.display = 'none';
+    modeEdit.style.display = '';
+    modalText.value = note.text || '';
+    modalUrl.value  = note.url  || '';
+    setTimeout(function () { modalText.focus(); }, 40);
+  }
+
   function closeModal() { modalBg.classList.remove('open'); modalKey = null; }
+
   function saveNote() {
     if (!modalKey) return;
     var text  = modalText.value.trim();
@@ -372,23 +482,41 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
     if (text || url) { notes[modalKey] = { text: text, url: url }; }
     else             { delete notes[modalKey]; }
     saveNotes(notes);
-    refreshUI(notes);
+    refreshCells(notes);
+    // Update lens if it's showing the same cell
+    if (currentCell && currentCell.dataset.d === modalKey) updateLens(currentCell);
     closeModal();
   }
 
-  // Event delegation — one listener covers all 520 buttons
-  grid.addEventListener('click', function (e) {
-    var btn = e.target.closest('.tip-btn');
-    if (btn && btn.dataset.key) { openModal(btn.dataset.key); return; }
+  // Lens button — opens modal (view or edit depending on note state)
+  lensBtn.addEventListener('click', function () {
+    if (lensBtn.dataset.key) openModal(lensBtn.dataset.key, false);
   });
 
-  modalClose.addEventListener('click',  closeModal);
-  modalCancel.addEventListener('click', closeModal);
-  modalSave.addEventListener('click',   saveNote);
+  // Lens link click is handled natively by <a target="_blank">
+
+  // Modal controls
+  document.getElementById('btnEdit').addEventListener('click', function () {
+    var notes = loadNotes();
+    showEdit(notes[modalKey] || {});
+  });
+  document.getElementById('btnDone').addEventListener('click', closeModal);
+  document.getElementById('modalClose').addEventListener('click', closeModal);
+  document.getElementById('modalSave').addEventListener('click', saveNote);
+  document.getElementById('modalCancel').addEventListener('click', function () {
+    // If there was an existing note, go back to view; otherwise close
+    if (hadNote) {
+      var notes = loadNotes();
+      showView(notes[modalKey] || {});
+    } else {
+      closeModal();
+    }
+  });
   modalBg.addEventListener('click', function (e) { if (e.target === modalBg) closeModal(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 
-  refreshUI(loadNotes());
+  // Init
+  refreshCells(loadNotes());
 }());
 </script>
 </body>
