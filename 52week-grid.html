@@ -249,6 +249,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="k">
       Span
       <button class="edit-span-btn" id="editStartBtn">edit</button>
+      <button class="edit-span-btn" id="fitEntriesBtn">fit to entries</button>
     </span>
     <span class="v" id="spanDisplay"></span>
     <div class="span-form" id="startForm">
@@ -283,7 +284,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="k">Calendar</span>
     <div class="cal-btns">
       <button class="cal-btn" id="importBtn" data-tip="Accepts .ics (iCalendar) · .csv (Google Cal, Outlook)">↑ Import</button>
-      <button class="cal-btn" id="exportBtn" data-tip="Downloads .csv · compatible with Google Calendar">↓ Export</button>
+      <button class="cal-btn" id="exportBtn" data-tip="Download CSV file (compatible with Google/Microsoft)">↓ Export</button>
     </div>
     <input type="file" id="importFile" accept=".csv,.ics,text/calendar" style="display:none">
   </div>
@@ -538,6 +539,32 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   // Enforce max 3 digits; block non-numeric characters
   spanInput.addEventListener('input', function () {
     this.value = this.value.replace(/[^0-9]/g, '').slice(0, 3);
+  });
+
+  /* ── Fit grid to entry range ─────────────────────────────────── */
+  document.getElementById('fitEntriesBtn').addEventListener('click', function () {
+    var notes = loadNotes();
+    var keys  = Object.keys(notes).filter(function (k) {
+      var n = notes[k]; return n && (n.text || n.url);
+    });
+    if (keys.length === 0) {
+      alert('No entries found.\nImport some calendar data first, then use Fit to entries.');
+      return;
+    }
+    var minY = Infinity, maxY = -Infinity;
+    for (var i = 0; i < keys.length; i++) {
+      var yr = parseInt(keys[i].split(', ')[1], 10);
+      if (yr < minY) minY = yr;
+      if (yr > maxY) maxY = yr;
+    }
+    START_YEAR = minY;
+    YEARS      = maxY - minY + 1;
+    try { localStorage.setItem(STORE_START, START_YEAR); } catch (e) {}
+    try { localStorage.setItem(STORE_YEARS, YEARS); } catch (e) {}
+    // Close any open edit forms
+    spanForm.classList.remove('on');
+    startForm.classList.remove('on');
+    buildGrid();
   });
 
   /* ── Start year editor ───────────────────────────────────────── */
