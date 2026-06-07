@@ -209,20 +209,20 @@ html, body { margin: 0; padding: 0; background: #101517; }
 }
 
 /* ── Lens overlay ───────────────────────────────────────────────────
-   JS positions this at the actual visual coordinates of the 6× tile.
-   No CSS transform — already at real size. RAF loop tracks :hover.
+   position:fixed on body — uses raw viewport coords from
+   getBoundingClientRect(), no container offset math needed.
 ──────────────────────────────────────────────────────────────────── */
 .lens {
-  position: absolute;
+  position: fixed;
   pointer-events: none;
-  z-index: 25;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
   padding: 12% 8% 10%;
   opacity: 0;
-  transition: opacity .12s ease;
+  transition: opacity .1s ease;
 }
 .lens.on { opacity: 1; }
 .lens-title {
@@ -358,7 +358,7 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
 <body>
 <div class="root"><div class="wrap">
 
-<span class="eyebrow">Prototype v20260607·1543 · 52 × 10 · Fisheye hover · JS notes</span>
+<span class="eyebrow">Prototype v20260607·1608 · 52 × 10 · Fisheye hover · JS notes</span>
 <h1 class="title">A decade, <em>one week at a time.</em></h1>
 <p class="lead">520 cells spanning one decade. Hover any cell to magnify — neighboring cells scale with a fisheye effect. Click "add a note" on any week to annotate it.</p>
 
@@ -466,11 +466,10 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
   }
 
   // ── Lens overlay ────────────────────────────────────────────────
-  const container = document.getElementById('container');
-  const lens      = document.createElement('div');
-  lens.className  = 'lens';
-  lens.innerHTML  = '<span class="lens-title"></span><button class="lens-add"></button>';
-  container.appendChild(lens);
+  const lens = document.createElement('div');
+  lens.className = 'lens';
+  lens.innerHTML = '<span class="lens-title"></span><button class="lens-add"></button>';
+  document.body.appendChild(lens);
 
   const lensTitle = lens.querySelector('.lens-title');
   const lensAdd   = lens.querySelector('.lens-add');
@@ -493,6 +492,7 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
   // RAF loop: grid.querySelector('.c:hover') always resolves to the
   // native-size <a> element (::before has pointer-events:none), so
   // hover detection is pixel-accurate even under the scaled tile.
+  // Lens is position:fixed on body, so we use raw viewport coords.
   function tick() {
     if (!modalIsOpen) {
       const hov = grid.querySelector('.c:hover');
@@ -500,13 +500,14 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
         const key = hov.dataset.d;
         if (key !== prevKey) {
           prevKey = key;
-          const notes  = loadNotes();
-          const cRect  = container.getBoundingClientRect();
-          const hRect  = hov.getBoundingClientRect();
-          const w = hRect.width  * SCALE;
-          const h = hRect.height * SCALE;
-          lens.style.left   = ((hRect.left - cRect.left) + hRect.width  / 2 - w / 2) + 'px';
-          lens.style.top    = ((hRect.top  - cRect.top)  + hRect.height - h)          + 'px';
+          const notes = loadNotes();
+          const r     = hov.getBoundingClientRect();
+          const w     = r.width  * SCALE;
+          const h     = r.height * SCALE;
+          // Tile grows upward (transform-origin: 50% 100%), so its
+          // bottom stays at r.bottom and its top is r.bottom - h.
+          lens.style.left   = (r.left + r.width / 2 - w / 2) + 'px';
+          lens.style.top    = (r.bottom - h)                  + 'px';
           lens.style.width  = w + 'px';
           lens.style.height = h + 'px';
           lensTitle.textContent = key;
@@ -515,8 +516,8 @@ input.modal-input    { font-size: 14px; margin-bottom: 24px; }
           lens.classList.add('on');
         }
       } else if (prevKey !== null && !mouseInLens()) {
-        // Only hide if the cursor has also left the lens bounds —
-        // prevents the lens from vanishing mid-travel to the button.
+        // Only hide once mouse has left the lens area too —
+        // so the label stays readable while cursor travels up.
         lens.classList.remove('on');
         prevKey = null;
       }
