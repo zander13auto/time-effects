@@ -48,7 +48,7 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .span-x:hover { color: #fff; }
 
 /* ── Grid container ───────────────────────────────────────────────── */
-.container { background: var(--bg2); border: 1px solid rgba(232,192,140,.25); border-radius: 6px; padding: 36px 56px 24px 64px; position: relative; }
+.container { background: var(--bg2); border: 1px solid rgba(232,192,140,.25); border-radius: 6px; padding: 36px 24px 24px 64px; position: relative; }
 .axis-x { position: absolute; top: 14px; left: 64px; right: 24px; display: grid; grid-template-columns: repeat(52,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: center; }
 .axis-y { position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px; display: grid; font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: right; padding-right: 10px; align-items: center; }
 
@@ -76,8 +76,8 @@ html, body { margin: 0; padding: 0; background: #101517; }
 /* Link indicator dot — top-right corner */
 .c.has-link::after  { content: ''; position: absolute; top: 2px; right: 2px; width: 3px; height: 3px; background: rgba(16,21,23,.5); border-radius: 50%; pointer-events: none; }
 .c.is-today::before          { outline: 2px solid var(--bl); outline-offset: -1px; box-shadow: 0 0 6px rgba(56,88,233,.5); }
-.row.is-current-year         { position: relative; background: rgba(232,192,140,.055); border-radius: 2px; }
-.cur-yr-label                { position: absolute; right: -48px; top: 50%; transform: translateY(-50%); font-size: 10px; color: rgba(232,192,140,.55); font-family: var(--ss); letter-spacing: .05em; pointer-events: none; white-space: nowrap; font-weight: 600; }
+.row.is-current-year         { outline: 1px solid rgba(232,192,140,.35); outline-offset: 1px; background: rgba(232,192,140,.07); }
+.axis-cur-yr                 { color: var(--ac) !important; font-weight: 800; opacity: 1 !important; }
 .c:hover { z-index: 9; }
 .c:hover::before, .c.pinned::before {
   background: var(--ac);
@@ -422,7 +422,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
           <input type="radio" name="importMode" value="append" style="margin-top:3px;accent-color:var(--ac)">
           <span style="color:#dcdcde;font-size:14px;line-height:1.5">
             <strong style="color:#fff;display:block;margin-bottom:2px">Append data</strong>
-            Add to empty weeks and merge into weeks that already have entries.
+            Add to empty weeks and merge into weeks that already have entries. Duplicate entries are skipped automatically.
           </span>
         </label>
         <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
@@ -541,7 +541,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   var today = isoWeek(new Date());
 
   /* ── Eyebrow (version + dynamic span) ───────────────────────── */
-  var EYEBROW_VER = 'Prototype 4be00351 2026-06-07·UTC22:08';
+  var EYEBROW_VER = 'Prototype c6091dc9 2026-06-07·UTC20:23';
   function updateEyebrow() {
     var el = document.getElementById('eyebrow');
     if (el) el.textContent = EYEBROW_VER + ' · ' + YEARS + ' years × ' + WEEKS + ' weeks';
@@ -585,7 +585,9 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     var labelEvery = YEARS <= 15 ? 1 : YEARS <= 40 ? 5 : 10;
     for (var yx = 0; yx < YEARS; yx++) {
       var sy2 = document.createElement('span');
-      sy2.textContent = (yx % labelEvery === 0) ? '0' + (START_YEAR + yx) : '';
+      var isCurYr = (START_YEAR + yx === today.year);
+      sy2.textContent = (isCurYr || yx % labelEvery === 0) ? '0' + (START_YEAR + yx) : '';
+      if (isCurYr) sy2.className = 'axis-cur-yr';
       axisY.appendChild(sy2);
     }
 
@@ -594,14 +596,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     for (var yi = 0; yi < YEARS; yi++) {
       var year = START_YEAR + yi;
       var row  = document.createElement('div');
-      row.className = 'row';
-      if (year === today.year) {
-        row.classList.add('is-current-year');
-        var yrLbl = document.createElement('span');
-        yrLbl.className = 'cur-yr-label';
-        yrLbl.textContent = '0' + year;
-        row.appendChild(yrLbl);
-      }
+      row.className = year === today.year ? 'row is-current-year' : 'row';
       for (var wi = 1; wi <= WEEKS; wi++) {
         var a = document.createElement('a');
         a.className = 'c';
@@ -1051,7 +1046,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   var importStepNum = 1;
   var importNewW    = 0, importExistW = 0;
 
-  function openImportModal(groups, parsed) {
+  function openImportModal(groups, parsed, defaultMode) {
     if (parsed === 0) { alert('No valid events found in file.'); return; }
     importGroups = groups;
     importParsed = parsed;
@@ -1073,7 +1068,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     importStep2El.style.display = 'none';
     importGoBtn.textContent  = 'Continue →';
     importBackBtn.textContent = 'Cancel';
-    document.querySelector('input[name="importMode"][value="add"]').checked = true;
+    document.querySelector('input[name="importMode"][value="' + (defaultMode || 'add') + '"]').checked = true;
     importStepNum = 1;
     importBg.classList.add('open');
   }
@@ -1129,21 +1124,30 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         if (hasExist) { skipped++; } else { notes[key] = newNote; added++; }
       } else if (mode === 'overwrite') {
         notes[key] = newNote; added++;
-      } else { /* append */
+      } else { /* append — deduplicated */
         if (!hasExist) {
           notes[key] = newNote; added++;
         } else {
           var ex = notes[key];
+          var changed = false;
           if (wpLinks && ex.links) {
-            notes[key] = { links: ex.links.concat(wpLinks) };
+            var exUrls = {}; ex.links.forEach(function (l) { exUrls[l.url] = true; });
+            var fresh = wpLinks.filter(function (l) { return !exUrls[l.url]; });
+            if (fresh.length) { notes[key] = { links: ex.links.concat(fresh) }; changed = true; }
           } else if (wpLinks) {
-            notes[key] = { text: (ex.text ? ex.text + '\n' : '') + titles, url: ex.url || '' };
+            var exTxt = (ex.text || '').toLowerCase();
+            var fresh2 = wpLinks.filter(function (l) { return exTxt.indexOf(l.title.toLowerCase()) < 0; });
+            if (fresh2.length) { notes[key] = { text: ex.text + '\n' + fresh2.map(function (l) { return l.title; }).join('\n'), url: ex.url || '' }; changed = true; }
           } else if (ex.links) {
-            notes[key] = { links: ex.links, text: (ex.text ? ex.text + '\n' : '') + titles };
+            var exTitles = ex.links.map(function (l) { return l.title.toLowerCase(); });
+            var fresh3 = importGroups[key].filter(function (t) { return exTitles.indexOf(t.toLowerCase()) < 0; });
+            if (fresh3.length) { notes[key] = { links: ex.links, text: (ex.text ? ex.text + '\n' : '') + fresh3.join('\n') }; changed = true; }
           } else {
-            notes[key] = { text: (ex.text ? ex.text + '\n' : '') + titles, url: ex.url || firstUrl };
+            var exLines = (ex.text || '').split('\n').map(function (l) { return l.trim().toLowerCase(); });
+            var fresh4 = importGroups[key].filter(function (t) { return exLines.indexOf(t.trim().toLowerCase()) < 0; });
+            if (fresh4.length) { notes[key] = { text: ex.text + '\n' + fresh4.join('\n'), url: ex.url || firstUrl }; changed = true; }
           }
-          updated++;
+          if (changed) { updated++; } else { skipped++; }
         }
       }
     }
@@ -1276,7 +1280,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       updateCalLabel();
       closeWpBlogModal();
       document.getElementById('importTitle').textContent = 'Import from WordPress';
-      openImportModal(result.groups, posts.length);
+      openImportModal(result.groups, posts.length, 'append');
     });
   }
 
