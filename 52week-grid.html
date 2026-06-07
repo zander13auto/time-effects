@@ -68,12 +68,13 @@ html, body { margin: 0; padding: 0; background: #101517; }
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: #1d2327;
+  background: var(--entry-bg, #1d2327);
   border: 1px solid rgba(232,192,140,.1);
   transition: background .1s ease, border-color .1s ease, box-shadow .1s ease;
 }
-.c.has-note::before          { background: rgba(232,192,140,.45); border-color: rgba(232,192,140,.7); }
-.c.has-note.has-link::before { background: var(--ac); }
+.c.has-note::before { border-color: rgba(232,192,140,.55); }
+/* Link indicator dot — top-right corner */
+.c.has-link::after  { content: ''; position: absolute; top: 2px; right: 2px; width: 3px; height: 3px; background: rgba(16,21,23,.5); border-radius: 50%; pointer-events: none; }
 .c.is-today::before          { outline: 2px solid var(--bl); outline-offset: -1px; }
 .c:hover { z-index: 9; }
 .c:hover::before, .c.pinned::before {
@@ -356,6 +357,45 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   </div>
 </div>
 
+<!-- Import modal -->
+<div class="modal-bg" id="importBg">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-head">
+      <span class="modal-wk" id="importTitle">Import calendar</span>
+      <button class="modal-close" id="importClose" aria-label="Close">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden">
+      <!-- Step 1: options -->
+      <div class="modal-body" id="importStep1">
+        <p id="importSummary" style="font-size:15px;color:#dcdcde;margin:0 0 20px;line-height:1.6"></p>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin-bottom:14px">
+          <input type="radio" name="importMode" value="add" checked style="margin-top:3px;accent-color:var(--ac)">
+          <span style="color:#dcdcde;font-size:14px;line-height:1.5">
+            <strong style="color:#fff;display:block;margin-bottom:2px">Add only new</strong>
+            Skip weeks that already have entries.
+          </span>
+        </label>
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer">
+          <input type="radio" name="importMode" value="overwrite" style="margin-top:3px;accent-color:var(--ac)">
+          <span style="color:#dcdcde;font-size:14px;line-height:1.5">
+            <strong style="color:#fff;display:block;margin-bottom:2px">Overwrite all</strong>
+            Replace existing entries for matching weeks.
+          </span>
+        </label>
+      </div>
+      <!-- Step 2: confirm -->
+      <div class="modal-body" id="importStep2" style="display:none">
+        <p id="importConfirmMsg" style="font-size:15px;color:#dcdcde;margin:0 0 14px;line-height:1.65"></p>
+        <p style="font-size:14px;color:#e07060;margin:0;font-weight:600">Are you sure? This cannot be undone.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="importBackBtn">Cancel</button>
+        <button class="btn-save"   id="importGoBtn">Continue →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Reset confirmation modal -->
 <div class="modal-bg" id="resetBg">
   <div class="modal" style="max-width:380px">
@@ -609,18 +649,48 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   }
   function saveNotes(n) { localStorage.setItem(STORE, JSON.stringify(n)); }
 
+  function entryLineCount(note) {
+    if (!note) return 0;
+    if (!note.text) return note.url ? 1 : 0;
+    return note.text.split('\n').filter(function (l) { return l.trim(); }).length || 1;
+  }
+
   function refreshCells(notes) {
+    // ── Compute max line count across all entries for shading scale ──
+    var maxLines = 1;
+    var nkeys = Object.keys(notes);
+    for (var ki = 0; ki < nkeys.length; ki++) {
+      var lc = entryLineCount(notes[nkeys[ki]]);
+      if (lc > maxLines) maxLines = lc;
+    }
+
+    var MIN_OP = 0.13, MAX_OP = 0.80;
     var cells = document.querySelectorAll('.c');
     for (var i = 0; i < cells.length; i++) {
-      var cell = cells[i];
-      var note = notes[cell.dataset.d];
-      cell.classList.toggle('has-note', !!(note && (note.text || note.url)));
-      cell.classList.toggle('has-link', !!(note && note.url));
+      var cell    = cells[i];
+      var note    = notes[cell.dataset.d];
+      var hasNote = !!(note && (note.text || note.url));
+      var hasLink = !!(note && note.url);
+      cell.classList.toggle('has-note', hasNote);
+      cell.classList.toggle('has-link', hasLink);
+      if (hasNote) {
+        var lines   = entryLineCount(note);
+        // Single entry: show at mid-range. Multiple: lerp from min→max
+        var ratio   = maxLines <= 1 ? 0.45 : (lines - 1) / (maxLines - 1);
+        var opacity = MIN_OP + ratio * (MAX_OP - MIN_OP);
+        cell.style.setProperty('--entry-bg', 'rgba(232,192,140,' + opacity.toFixed(3) + ')');
+      } else {
+        cell.style.removeProperty('--entry-bg');
+      }
     }
+
     var ec = document.getElementById('entryCount');
-    if (ec) ec.innerHTML = Object.keys(notes).length + '<small>saved</small>';
+    if (ec) {
+      var filled = nkeys.filter(function(k){ var n=notes[k]; return n&&(n.text||n.url); }).length;
+      ec.innerHTML = filled + '<small>saved</small>';
+    }
     var rb = document.getElementById('resetBtn');
-    if (rb) rb.style.display = Object.keys(notes).length ? '' : 'none';
+    if (rb) rb.style.display = nkeys.length ? '' : 'none';
   }
 
   /* ── Floating lens ────────────────────────────────────────────── */
@@ -768,7 +838,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     if (hadNote) { showView(loadNotes()[modalKey] || {}); } else { closeModal(); }
   });
   modalBg.addEventListener('click', function (e) { if (e.target === modalBg) closeModal(); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeReset(); } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeReset(); closeImportModal(); } });
 
   /* ── CSV utilities ────────────────────────────────────────────── */
   function parseCSVLine(line) {
@@ -827,30 +897,114 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     return events;
   }
 
-  /* ── Import calendar CSV or ICS ───────────────────────────────── */
-  document.getElementById('importBtn').addEventListener('click', function () {
-    document.getElementById('importFile').click();
+  /* ── Import modal ─────────────────────────────────────────────── */
+  var importBg      = document.getElementById('importBg');
+  var importStep1El = document.getElementById('importStep1');
+  var importStep2El = document.getElementById('importStep2');
+  var importGoBtn   = document.getElementById('importGoBtn');
+  var importBackBtn = document.getElementById('importBackBtn');
+  var importGroups  = {};
+  var importParsed  = 0;
+  var importStepNum = 1;
+  var importNewW    = 0, importExistW = 0;
+
+  function openImportModal(groups, parsed) {
+    if (parsed === 0) { alert('No valid events found in file.'); return; }
+    importGroups = groups;
+    importParsed = parsed;
+
+    var notes = loadNotes();
+    importNewW = 0; importExistW = 0;
+    for (var k in groups) {
+      if (notes[k] && (notes[k].text || notes[k].url)) importExistW++;
+      else importNewW++;
+    }
+
+    var totalW = Object.keys(groups).length;
+    document.getElementById('importSummary').textContent =
+      parsed + ' events across ' + totalW + ' week' + (totalW === 1 ? '' : 's') +
+      ' — ' + importNewW + ' new, ' + importExistW + ' already have entries.';
+
+    // Reset to step 1
+    importStep1El.style.display = '';
+    importStep2El.style.display = 'none';
+    importGoBtn.textContent  = 'Continue →';
+    importBackBtn.textContent = 'Cancel';
+    document.querySelector('input[name="importMode"][value="add"]').checked = true;
+    importStepNum = 1;
+    importBg.classList.add('open');
+  }
+
+  importGoBtn.addEventListener('click', function () {
+    var mode = document.querySelector('input[name="importMode"]:checked').value;
+    if (importStepNum === 1) {
+      var msg;
+      if (mode === 'add') {
+        msg = 'Will add entries to ' + importNewW + ' new week' + (importNewW === 1 ? '' : 's') + '.';
+        if (importExistW) msg += ' ' + importExistW + ' existing week' + (importExistW === 1 ? '' : 's') + ' will be skipped.';
+      } else {
+        msg = 'Will add entries to ' + importNewW + ' new week' + (importNewW === 1 ? '' : 's');
+        if (importExistW) msg += ' and overwrite ' + importExistW + ' existing week' + (importExistW === 1 ? '' : 's');
+        msg += '.';
+      }
+      document.getElementById('importConfirmMsg').textContent = msg;
+      importStep1El.style.display = 'none';
+      importStep2El.style.display = '';
+      importGoBtn.textContent  = 'Import';
+      importBackBtn.textContent = '← Back';
+      importStepNum = 2;
+    } else {
+      executeImport(mode);
+    }
   });
 
-  function importGroupsToEntries(groups, parsed) {
-    if (parsed === 0) { alert('No valid events found in file.'); return; }
+  importBackBtn.addEventListener('click', function () {
+    if (importStepNum === 2) {
+      importStep1El.style.display = '';
+      importStep2El.style.display = 'none';
+      importGoBtn.textContent  = 'Continue →';
+      importBackBtn.textContent = 'Cancel';
+      importStepNum = 1;
+    } else {
+      closeImportModal();
+    }
+  });
+
+  function executeImport(mode) {
     var notes  = loadNotes();
-    var added  = 0, merged = 0;
-    for (var key in groups) {
-      var titles = groups[key].join('\n');
-      if (notes[key] && (notes[key].text || notes[key].url)) {
-        notes[key].text = (notes[key].text ? notes[key].text + '\n' + titles : titles);
-        merged++;
+    var added  = 0, updated = 0, skipped = 0;
+    for (var key in importGroups) {
+      var titles   = importGroups[key].join('\n');
+      var hasExist = !!(notes[key] && (notes[key].text || notes[key].url));
+      if (hasExist) {
+        if (mode === 'overwrite') { notes[key] = { text: titles, url: notes[key].url || '' }; updated++; }
+        else { skipped++; }
       } else {
-        notes[key] = { text: titles, url: '' };
-        added++;
+        notes[key] = { text: titles, url: '' }; added++;
       }
     }
     saveNotes(notes);
     refreshCells(notes);
-    alert('Imported ' + parsed + ' events across ' + (added + merged) + ' weeks\n(' + added + ' new, ' + merged + ' merged into existing entries).');
+    closeImportModal();
+    var msg = 'Done. ' + added + ' week' + (added === 1 ? '' : 's') + ' added';
+    if (updated) msg += ', ' + updated + ' overwritten';
+    if (skipped) msg += ', ' + skipped + ' skipped';
+    alert(msg + '.');
     document.getElementById('importFile').value = '';
   }
+
+  function closeImportModal() {
+    importBg.classList.remove('open');
+    importGroups = {}; importStepNum = 1;
+  }
+
+  document.getElementById('importClose').addEventListener('click', closeImportModal);
+  importBg.addEventListener('click', function (e) { if (e.target === importBg) closeImportModal(); });
+
+  /* ── Import calendar CSV or ICS ───────────────────────────────── */
+  document.getElementById('importBtn').addEventListener('click', function () {
+    document.getElementById('importFile').click();
+  });
 
   document.getElementById('importFile').addEventListener('change', function () {
     var file = this.files[0];
@@ -875,7 +1029,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
           groups[key].push(ev2.summary);
           parsed++;
         }
-        importGroupsToEntries(groups, parsed);
+        openImportModal(groups, parsed);
 
       } else {
         /* ── CSV branch ── */
@@ -910,7 +1064,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
           groups[key2].push(subject);
           parsed++;
         }
-        importGroupsToEntries(groups, parsed);
+        openImportModal(groups, parsed);
       }
     };
     reader.readAsText(file);
