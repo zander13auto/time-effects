@@ -1,0 +1,57 @@
+name: Version stamp
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  stamp:
+    runs-on: ubuntu-latest
+    # Skip if the push was made by this action itself
+    if: "!contains(github.event.head_commit.message, '[skip-stamp]')"
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compute version string
+        id: ver
+        run: |
+          SHORT="${GITHUB_SHA:0:8}"
+          DATE=$(date -u '+%Y-%m-%d')
+          TIME=$(date -u '+%H:%M')
+          echo "str=Prototype ${SHORT} ${DATE}·UTC${TIME}" >> "$GITHUB_OUTPUT"
+
+      - name: Stamp all HTML files
+        env:
+          VER: ${{ steps.ver.outputs.str }}
+        run: |
+          python3 << 'EOF'
+          import re, glob, os
+          ver = os.environ['VER']
+          # Match the version pattern wherever it appears in HTML/JS
+          pat = re.compile(
+              r'Prototype\s+[a-f0-9]{8}\s+\d{4}-\d{2}-\d{2}\xb7UTC\d{2}:\d{2}'
+          )
+          for fpath in sorted(glob.glob('*.html')):
+              text = open(fpath, encoding='utf-8').read()
+              new  = pat.sub(ver, text)
+              if new != text:
+                  open(fpath, 'w', encoding='utf-8').write(new)
+                  print(f'Stamped {fpath}')
+              else:
+                  print(f'No match in {fpath}')
+          EOF
+
+      - name: Commit if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add *.html
+          if git diff --staged --quiet; then
+            echo "Nothing to stamp."
+          else
+            git commit -m "[skip-stamp] version stamp ${GITHUB_SHA:0:8} $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
