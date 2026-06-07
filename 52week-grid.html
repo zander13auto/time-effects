@@ -196,10 +196,21 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 .btn-delete { background: #b03a2e; border: none; color: #fff; padding: 9px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--ss); }
 .btn-delete:hover { background: #c0392b; }
 
+/* Calendar import / export buttons */
+.cal-btns { display: flex; gap: 5px; margin-top: 4px; }
+.cal-btn { background: none; border: 1px solid rgba(232,192,140,.25); color: rgba(232,192,140,.6); font-size: 10px; padding: 2px 8px; border-radius: 3px; cursor: pointer; font-family: var(--ss); letter-spacing: .04em; line-height: 1.6; }
+.cal-btn:hover { border-color: var(--ac); color: var(--ac); }
+
 /* Reset button in meta bar */
 .meta-reset { margin-left: auto; display: flex; align-items: center; }
 .reset-btn { background: none; border: 1px solid rgba(232,192,140,.2); color: rgba(232,192,140,.45); font-size: 10px; padding: 3px 9px; border-radius: 3px; cursor: pointer; font-family: var(--ss); letter-spacing: .04em; line-height: 1.6; }
 .reset-btn:hover { border-color: #b03a2e; color: #e07060; }
+
+/* Google Calendar links */
+.lens-gcal { font-family: var(--ss); font-size: 10px; color: rgba(16,21,23,.38); text-decoration: none; letter-spacing: .02em; pointer-events: auto; text-align: center; }
+.lens-gcal:hover { color: rgba(16,21,23,.75); text-decoration: underline; }
+.modal-gcal { font-size: 12px; color: rgba(232,192,140,.45); text-decoration: none; display: inline-block; margin-top: 3px; }
+.modal-gcal:hover { color: var(--ac); text-decoration: underline; }
 
 /* Lens date range */
 .lens-dates { font-family: var(--ss); font-size: 11px; color: rgba(16,21,23,.48); letter-spacing: .03em; }
@@ -247,6 +258,14 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="k">Entries</span>
     <span class="v" id="entryCount">0<small>saved</small></span>
   </div>
+  <div class="meta-item">
+    <span class="k">Calendar</span>
+    <div class="cal-btns">
+      <button class="cal-btn" id="importBtn">↑ Import CSV</button>
+      <button class="cal-btn" id="exportBtn">↓ Export CSV</button>
+    </div>
+    <input type="file" id="importFile" accept=".csv" style="display:none">
+  </div>
   <div class="meta-reset">
     <button class="reset-btn" id="resetBtn" style="display:none" title="Clear all saved entries">↺ Reset entries</button>
   </div>
@@ -273,13 +292,17 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <a class="lens-link-txt" id="lensLinkTxt" target="_blank" rel="noopener"></a>
   </div>
   <div class="lens-cta" id="lensCta">click to add an entry</div>
+  <a class="lens-gcal" id="lensGcal" href="#" target="_blank" rel="noopener">↗ open in Google Calendar</a>
 </div>
 
 <!-- Modal -->
 <div class="modal-bg" id="modalBg">
   <div class="modal">
     <div class="modal-head">
-      <span class="modal-wk" id="modalWk"></span>
+      <div style="flex:1;min-width:0">
+        <span class="modal-wk" id="modalWk"></span>
+        <br><a class="modal-gcal" id="modalGcal" href="#" target="_blank" rel="noopener">↗ open week in Google Calendar</a>
+      </div>
       <button class="modal-close" id="modalClose" aria-label="Close">×</button>
     </div>
 
@@ -359,6 +382,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     wStart.setUTCDate(w1mon.getUTCDate() + (week - 1) * 7);
     return wStart;
   }
+  function isoWeekToGCalURL(year, week) {
+    var s = isoWeekStart(year, week);
+    return 'https://calendar.google.com/calendar/r/week/' +
+      s.getUTCFullYear() + '/' + (s.getUTCMonth() + 1) + '/' + s.getUTCDate();
+  }
+
   function formatWeekRange(year, week) {
     var s = isoWeekStart(year, week);
     var e = new Date(s); e.setUTCDate(s.getUTCDate() + 6);
@@ -558,6 +587,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     var wn = parseInt(parts[0].replace('Week ', ''), 10);
     var yn = parseInt(parts[1], 10);
     document.getElementById('lensDates').textContent = formatWeekRange(yn, wn);
+    document.getElementById('lensGcal').href = isoWeekToGCalURL(yn, wn);
     var note = loadNotes()[key];
     if (note && (note.text || note.url)) {
       lensPreview.classList.add('on');
@@ -632,6 +662,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     modalKey = key;
     hadNote  = !!(note && (note.text || note.url));
     modalWk.textContent = key;
+    var mkp = key.split(', ');
+    document.getElementById('modalGcal').href = isoWeekToGCalURL(parseInt(mkp[1], 10), parseInt(mkp[0].replace('Week ', ''), 10));
     if (hadNote) { showView(note); } else { showEdit({}); }
     modalBg.classList.add('open');
   }
@@ -681,6 +713,139 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   });
   modalBg.addEventListener('click', function (e) { if (e.target === modalBg) closeModal(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeReset(); } });
+
+  /* ── CSV utilities ────────────────────────────────────────────── */
+  function parseCSVLine(line) {
+    var fields = [], cur = '', inQ = false, i, ch;
+    for (i = 0; i < line.length; i++) {
+      ch = line[i];
+      if (inQ) {
+        if (ch === '"') { if (line[i+1] === '"') { cur += '"'; i++; } else { inQ = false; } }
+        else { cur += ch; }
+      } else {
+        if (ch === '"') { inQ = true; }
+        else if (ch === ',') { fields.push(cur); cur = ''; }
+        else { cur += ch; }
+      }
+    }
+    fields.push(cur);
+    return fields;
+  }
+  function csvField(val) {
+    val = String(val || '');
+    if (/[,"\n]/.test(val)) return '"' + val.replace(/"/g, '""') + '"';
+    return val;
+  }
+  function padMD(n) { return n < 10 ? '0' + n : '' + n; }
+
+  /* ── Import calendar CSV ──────────────────────────────────────── */
+  document.getElementById('importBtn').addEventListener('click', function () {
+    document.getElementById('importFile').click();
+  });
+  document.getElementById('importFile').addEventListener('change', function () {
+    var file = this.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      var lines = ev.target.result.split(/\r?\n/);
+      if (lines.length < 2) { alert('No data found in CSV.'); return; }
+
+      // Detect columns (case-insensitive header scan)
+      var headers = parseCSVLine(lines[0]);
+      var colSubject = -1, colStart = -1;
+      for (var h = 0; h < headers.length; h++) {
+        var hdr = headers[h].trim().toLowerCase();
+        if (hdr === 'subject')     colSubject = h;
+        if (hdr === 'start date')  colStart   = h;
+      }
+      if (colSubject < 0 || colStart < 0) {
+        alert('CSV must have "Subject" and "Start Date" columns.\nSupported: Google Calendar export, Outlook export.');
+        return;
+      }
+
+      // Group event titles by ISO week
+      var groups = {};
+      var parsed = 0, skipped = 0;
+      for (var i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        var fields  = parseCSVLine(lines[i]);
+        var subject = (fields[colSubject] || '').trim();
+        var dateStr = (fields[colStart]   || '').trim();
+        if (!subject || !dateStr) { skipped++; continue; }
+
+        // Accept MM/DD/YYYY (GCal/Outlook) or YYYY-MM-DD (ISO)
+        var dt = null;
+        var mdy = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+        var iso = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        if (mdy) dt = new Date(Date.UTC(+mdy[3], +mdy[1]-1, +mdy[2]));
+        else if (iso) dt = new Date(Date.UTC(+iso[1], +iso[2]-1, +iso[3]));
+        if (!dt || isNaN(dt.getTime())) { skipped++; continue; }
+
+        var iw  = isoWeek(dt);
+        var key = 'Week ' + iw.week + ', 0' + iw.year;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(subject);
+        parsed++;
+      }
+
+      if (parsed === 0) {
+        alert('No valid events found.\nCheck that Start Date is MM/DD/YYYY (Google Calendar / Outlook) or YYYY-MM-DD.');
+        return;
+      }
+
+      // Merge into stored entries
+      var notes  = loadNotes();
+      var added  = 0, merged = 0;
+      for (var key2 in groups) {
+        var titles = groups[key2].join('\n');
+        if (notes[key2] && (notes[key2].text || notes[key2].url)) {
+          notes[key2].text = (notes[key2].text ? notes[key2].text + '\n' + titles : titles);
+          merged++;
+        } else {
+          notes[key2] = { text: titles, url: '' };
+          added++;
+        }
+      }
+      saveNotes(notes);
+      refreshCells(notes);
+      alert('Imported ' + parsed + ' events across ' + (added + merged) + ' weeks\n(' + added + ' new weeks, ' + merged + ' merged into existing entries).');
+      document.getElementById('importFile').value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  /* ── Export calendar CSV ──────────────────────────────────────── */
+  document.getElementById('exportBtn').addEventListener('click', function () {
+    var notes = loadNotes();
+    var keys  = Object.keys(notes).filter(function (k) {
+      var n = notes[k]; return n && (n.text || n.url);
+    });
+    if (keys.length === 0) { alert('No entries to export.'); return; }
+
+    var rows = ['Subject,Start Date,Start Time,End Date,End Time,All Day Event,Description,Location,Private'];
+    for (var i = 0; i < keys.length; i++) {
+      var key  = keys[i];
+      var note = notes[key];
+      var kp   = key.split(', ');
+      var wn   = parseInt(kp[0].replace('Week ', ''), 10);
+      var yn   = parseInt(kp[1], 10);
+      var s    = isoWeekStart(yn, wn);
+      var e    = new Date(s); e.setUTCDate(s.getUTCDate() + 6);
+      var sD   = padMD(s.getUTCMonth()+1) + '/' + padMD(s.getUTCDate()) + '/' + s.getUTCFullYear();
+      var eD   = padMD(e.getUTCMonth()+1) + '/' + padMD(e.getUTCDate()) + '/' + e.getUTCFullYear();
+      var subj = csvField(formatWeekRange(yn, wn) + ' ' + yn);
+      var desc = csvField((note.text || '') + (note.url ? '\n' + note.url : ''));
+      rows.push([subj, sD, '', eD, '', 'True', desc, '', 'False'].join(','));
+    }
+
+    var csv  = rows.join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url  = URL.createObjectURL(blob);
+    var a    = document.createElement('a');
+    a.href = url; a.download = 'life-grid-entries.csv';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+  });
 
   /* ── Reset notes modal ────────────────────────────────────────── */
   var resetBg = document.getElementById('resetBg');
