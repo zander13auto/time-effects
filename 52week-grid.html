@@ -18,79 +18,32 @@ html, body { margin: 0; padding: 0; background: #101517; }
   --bd: rgba(232,192,140,.18);
 }
 
-.root {
-  background: var(--bg);
-  color: #fff;
-  font-family: var(--ss);
-  -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
-  padding: 64px 32px 96px;
-}
+.root { background: var(--bg); color: #fff; font-family: var(--ss); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: 64px 32px 96px; }
 .wrap { max-width: 1280px; margin: 0 auto; }
 
-.eyebrow {
-  display: inline-block;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: var(--ac);
-  margin-bottom: 24px;
-}
-.title {
-  font-family: var(--sf);
-  font-weight: 400;
-  letter-spacing: -.02em;
-  line-height: 1.05;
-  font-size: clamp(40px,6vw,72px);
-  color: #fff;
-  margin: 0 0 16px;
-}
+.eyebrow { display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--ac); margin-bottom: 24px; }
+.title { font-family: var(--sf); font-weight: 400; letter-spacing: -.02em; line-height: 1.05; font-size: clamp(40px,6vw,72px); color: #fff; margin: 0 0 16px; }
 .title em { font-style: italic; color: var(--ac); font-weight: 300; }
 .lead { font-size: 17px; color: #dcdcde; max-width: 680px; margin: 0 0 40px; line-height: 1.6; }
 
-.meta {
-  display: flex; gap: 32px; flex-wrap: wrap;
-  margin-bottom: 40px; padding: 20px 24px;
-  background: rgba(232,192,140,.04);
-  border: 1px solid var(--bd); border-radius: 8px;
-}
+.meta { display: flex; gap: 32px; flex-wrap: wrap; margin-bottom: 40px; padding: 20px 24px; background: rgba(232,192,140,.04); border: 1px solid var(--bd); border-radius: 8px; }
 .meta-item { display: flex; flex-direction: column; gap: 4px; }
 .meta-item .k { font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: var(--ac); font-weight: 600; }
 .meta-item .v { font-family: var(--sf); font-size: 22px; color: #fff; font-feature-settings: 'tnum'; }
 .meta-item .v small { font-size: 13px; color: #a7aaad; font-family: var(--ss); margin-left: 6px; }
 
-.container {
-  background: var(--bg2);
-  border: 1px solid rgba(232,192,140,.25);
-  border-radius: 6px;
-  padding: 36px 24px 24px 64px;
-  position: relative;
-}
-.axis-x {
-  position: absolute; top: 14px; left: 64px; right: 24px;
-  display: grid; grid-template-columns: repeat(52,1fr);
-  font-size: 10px; color: rgba(232,192,140,.7);
-  letter-spacing: .06em; font-feature-settings: 'tnum';
-  font-weight: 600; text-align: center;
-}
-.axis-y {
-  position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px;
-  display: grid; grid-template-rows: repeat(10,1fr);
-  font-size: 10px; color: rgba(232,192,140,.7);
-  letter-spacing: .06em; font-feature-settings: 'tnum';
-  font-weight: 600; text-align: right; padding-right: 10px; align-items: center;
-}
-.grid {
-  display: grid; grid-template-columns: repeat(52,1fr);
-  gap: 2px; background: rgba(232,192,140,.18);
-  padding: 2px; border-radius: 3px;
-}
+.container { background: var(--bg2); border: 1px solid rgba(232,192,140,.25); border-radius: 6px; padding: 36px 24px 24px 64px; position: relative; }
+.axis-x { position: absolute; top: 14px; left: 64px; right: 24px; display: grid; grid-template-columns: repeat(52,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: center; }
+.axis-y { position: absolute; top: 36px; left: 8px; bottom: 24px; width: 50px; display: grid; grid-template-rows: repeat(10,1fr); font-size: 10px; color: rgba(232,192,140,.7); letter-spacing: .06em; font-feature-settings: 'tnum'; font-weight: 600; text-align: right; padding-right: 10px; align-items: center; }
+
+/* Grid — rows prevent sibling selectors from wrapping across years */
+.grid { display: flex; flex-direction: column; background: rgba(232,192,140,.18); padding: 2px; border-radius: 3px; gap: 2px; }
+.row  { display: grid; grid-template-columns: repeat(52,1fr); gap: 2px; }
 
 /* ── Cell ───────────────────────────────────────────────────────────
-   .c stays at native size for correct hit-detection.
-   All visual scaling is in ::before (pointer-events:none).
-   transform-origin 50% 100% → grows upward from bottom-center.
+   .c stays at native size for correct pointer hit-detection.
+   All visual scaling lives in ::before (pointer-events: none).
+   transform-origin 50% 100% → tile grows upward from bottom-center.
 ──────────────────────────────────────────────────────────────────── */
 .c {
   aspect-ratio: 1/1;
@@ -130,35 +83,30 @@ html, body { margin: 0; padding: 0; background: #101517; }
   box-shadow: 0 0 0 1px var(--ac), 0 12px 36px rgba(0,0,0,.8);
 }
 
+/* Fisheye neighbours — contained within .row, no year-wrap bleed */
 .c:hover + .c,
-.c:has(+ .c:hover)          { z-index: 7; }
+.c:has(+ .c:hover)           { z-index: 7; }
 .c:hover + .c::before,
-.c:has(+ .c:hover)::before  {
-  transform: scale(3.6);
-  background: rgba(232,192,140,.75);
-  border-color: rgba(232,192,140,.85);
-  box-shadow: 0 6px 20px rgba(0,0,0,.55);
-}
+.c:has(+ .c:hover)::before   { transform: scale(3.6); background: rgba(232,192,140,.75); border-color: rgba(232,192,140,.85); box-shadow: 0 6px 20px rgba(0,0,0,.55); }
 
 .c:hover + .c + .c,
-.c:has(+ .c + .c:hover)         { z-index: 5; }
+.c:has(+ .c + .c:hover)          { z-index: 5; }
 .c:hover + .c + .c::before,
-.c:has(+ .c + .c:hover)::before { transform: scale(2.2); background: rgba(232,192,140,.45); }
+.c:has(+ .c + .c:hover)::before  { transform: scale(2.2); background: rgba(232,192,140,.45); }
 
 .c:hover + .c + .c + .c,
 .c:has(+ .c + .c + .c:hover)         { z-index: 3; }
 .c:hover + .c + .c + .c::before,
 .c:has(+ .c + .c + .c:hover)::before { transform: scale(1.45); background: rgba(232,192,140,.22); }
 
-/* ── Tip overlay ────────────────────────────────────────────────────
-   Pure CSS. Sized to exactly cover the 6× magnified tile:
+/* ── Tip overlay ─────────────────────────────────────────────────────
+   Sized to match the 6× magnified tile exactly:
      width/height = 600% of the native cell
-     bottom: 0 matches transform-origin: 50% 100% (grows upward)
-   Hidden and non-interactive by default.
-   On .c:hover → visible and pointer-events:auto.
-   Hovering .tip counts as hovering .c (ancestor rule), so the tip
-   stays visible when the cursor moves from the native cell up into
-   the magnified tile area.
+     bottom: 0 matches transform-origin: 50% 100%
+   Always pointer-events: none — the .tip NEVER intercepts cursor
+   events, so left/right navigation stays smooth (no cell-skip).
+   Only .tip-btn and .tip-link have pointer-events: auto; both sit
+   in the lower portion of the tile, reachable from the native cell.
 ──────────────────────────────────────────────────────────────────── */
 .tip {
   position: absolute;
@@ -167,37 +115,53 @@ html, body { margin: 0; padding: 0; background: #101517; }
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  pointer-events: none;
+  pointer-events: none;        /* never blocks left/right navigation */
   z-index: 10;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
-  padding: 12% 8% 10%;
+  justify-content: space-between;
+  padding: 14% 10% 11%;
   opacity: 0;
 }
-.c:hover .tip {
-  pointer-events: auto;
-  opacity: 1;
-}
-.tip-week {
-  font-family: var(--sf);
-  font-size: 14px;
-  font-weight: 600;
-  color: #101517;
-  text-align: center;
-  line-height: 1.2;
-  pointer-events: none;
-}
-.tip-year {
+.c:hover .tip { opacity: 1; }  /* no pointer-events change — just visual */
+
+.tip-head { display: flex; flex-direction: column; align-items: center; gap: 1px; pointer-events: none; }
+.tip-week { font-family: var(--sf); font-size: 13px; font-weight: 600; color: #101517; text-align: center; line-height: 1.2; }
+.tip-year { font-family: var(--ss); font-size: 9px; color: rgba(16,21,23,.6); }
+
+/* Note preview — shown when a note exists */
+.tip-body { display: none; flex-direction: column; align-items: center; gap: 2px; width: 90%; pointer-events: none; }
+.tip-body.on { display: flex; }
+.tip-note {
   font-family: var(--ss);
-  font-size: 10px;
-  color: rgba(16,21,23,.6);
-  pointer-events: none;
+  font-size: 8px;
+  color: rgba(16,21,23,.75);
+  text-align: center;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  width: 100%;
+  line-height: 1.35;
 }
+.tip-link {
+  font-family: var(--ss);
+  font-size: 8px;
+  color: rgba(16,21,23,.6);
+  text-decoration: underline;
+  pointer-events: auto;        /* clickable link */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 90%;
+  cursor: pointer;
+}
+.tip-link:hover { color: #101517; }
+
 .tip-btn {
   font-family: var(--ss);
-  font-size: 10px;
+  font-size: 9px;
   color: rgba(16,21,23,.55);
   background: none;
   border: none;
@@ -206,57 +170,37 @@ html, body { margin: 0; padding: 0; background: #101517; }
   padding: 2px 4px;
   white-space: nowrap;
   line-height: 1;
+  pointer-events: auto;        /* clickable button */
 }
 .tip-btn:hover { color: #101517; }
 
 /* ── Modal ──────────────────────────────────────────────────────── */
-.modal-bg {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.72); z-index: 200;
-  align-items: center; justify-content: center;
-}
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.72); z-index: 200; align-items: center; justify-content: center; }
 .modal-bg.open { display: flex; }
-.modal {
-  background: #1a1f23; border: 1px solid var(--bd);
-  border-radius: 12px; padding: 32px;
-  width: 440px; max-width: calc(100vw - 48px);
-}
+.modal { background: #1a1f23; border: 1px solid var(--bd); border-radius: 12px; padding: 32px; width: 440px; max-width: calc(100vw - 48px); }
 .modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
 .modal-wk   { font-family: var(--sf); font-size: 20px; color: var(--ac); font-weight: 400; line-height: 1.2; }
 .modal-close { background: none; border: none; color: #5a6370; font-size: 22px; cursor: pointer; padding: 0; line-height: 1; }
 .modal-close:hover { color: #fff; }
 .modal-lbl  { display: block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: rgba(232,192,140,.65); font-weight: 600; margin-bottom: 7px; }
-.modal-field {
-  width: 100%; background: var(--bg);
-  border: 1px solid var(--bd); border-radius: 6px;
-  color: #dcdcde; font-family: var(--ss);
-  padding: 11px 14px; outline: none; margin-bottom: 14px;
-}
-.modal-field:focus   { border-color: rgba(232,192,140,.45); }
+.modal-field { width: 100%; background: var(--bg); border: 1px solid var(--bd); border-radius: 6px; color: #dcdcde; font-family: var(--ss); padding: 11px 14px; outline: none; margin-bottom: 14px; }
+.modal-field:focus { border-color: rgba(232,192,140,.45); }
 .modal-field::placeholder { color: #384048; }
 textarea.modal-field { font-size: 15px; line-height: 1.6; resize: vertical; min-height: 96px; }
 input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
-.btn-cancel {
-  background: transparent; border: 1px solid rgba(232,192,140,.2);
-  color: #7a8390; padding: 9px 18px; border-radius: 6px;
-  font-size: 14px; cursor: pointer; font-family: var(--ss);
-}
+.btn-cancel { background: transparent; border: 1px solid rgba(232,192,140,.2); color: #7a8390; padding: 9px 18px; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: var(--ss); }
 .btn-cancel:hover { border-color: rgba(232,192,140,.45); color: #fff; }
-.btn-save {
-  background: var(--ac); border: none; color: var(--bg);
-  padding: 9px 20px; border-radius: 6px;
-  font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--ss);
-}
+.btn-save { background: var(--ac); border: none; color: var(--bg); padding: 9px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--ss); }
 .btn-save:hover { background: #f0cfa0; }
 </style>
 </head>
 <body>
 <div class="root"><div class="wrap">
 
-<span class="eyebrow">Prototype v20260607·1642 · 52 × 10 · Fisheye hover · JS notes</span>
+<span class="eyebrow">Prototype v20260607·1724 · 52 × 10 · Fisheye hover · JS notes</span>
 <h1 class="title">A decade, <em>one week at a time.</em></h1>
-<p class="lead">520 cells spanning one decade. Hover any cell to magnify with a fisheye effect. Click "+ add a note" to annotate the week.</p>
+<p class="lead">520 cells spanning one decade. Hover any cell to magnify. Click "+ add a note" to annotate the week with text and a link.</p>
 
 <div class="meta">
   <div class="meta-item"><span class="k">Span</span><span class="v">02026<small>–</small>02035</span></div>
@@ -295,7 +239,6 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 
   var YEARS = 10, WEEKS = 52, START_YEAR = 2026, STORE = 'lg-notes-v1';
 
-  // Current ISO week
   function isoWeek(d) {
     var t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
     t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
@@ -316,15 +259,18 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   // Axis Y
   var axisY = document.getElementById('axisY');
   for (var y = 0; y < YEARS; y++) {
-    var s2 = document.createElement('span');
-    s2.textContent = '0' + (START_YEAR + y);
-    axisY.appendChild(s2);
+    var sy = document.createElement('span');
+    sy.textContent = '0' + (START_YEAR + y);
+    axisY.appendChild(sy);
   }
 
-  // Grid cells
+  // Grid — one .row per year keeps fisheye sibling selectors within the row
   var grid = document.getElementById('grid');
   for (var yi = 0; yi < YEARS; yi++) {
     var year = START_YEAR + yi;
+    var row = document.createElement('div');
+    row.className = 'row';
+
     for (var wi = 1; wi <= WEEKS; wi++) {
       var key = 'Week ' + wi + ', 0' + year;
       var a = document.createElement('a');
@@ -332,30 +278,27 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
       a.dataset.d = key;
       if (wi === today.week && year === today.year) a.classList.add('is-today');
 
-      // Tip — pure CSS hover, no JS positioning needed
-      var tip = document.createElement('span');
-      tip.className = 'tip';
+      // Tip: pointer-events:none on container, auto only on btn + link
+      var tip      = document.createElement('span');   tip.className = 'tip';
+      var head     = document.createElement('span');   head.className = 'tip-head';
+      var tipWeek  = document.createElement('span');   tipWeek.className = 'tip-week'; tipWeek.textContent = 'Week ' + wi;
+      var tipYear  = document.createElement('span');   tipYear.className = 'tip-year'; tipYear.textContent = '0' + year;
+      var body     = document.createElement('span');   body.className = 'tip-body';
+      var tipNote  = document.createElement('span');   tipNote.className = 'tip-note';
+      var tipLink  = document.createElement('a');      tipLink.className = 'tip-link'; tipLink.target = '_blank'; tipLink.style.display = 'none';
+      var btn      = document.createElement('button'); btn.className = 'tip-btn'; btn.type = 'button'; btn.dataset.key = key; btn.textContent = '+ add a note';
 
-      var tw = document.createElement('span');
-      tw.className = 'tip-week';
-      tw.textContent = 'Week ' + wi;
-
-      var ty = document.createElement('span');
-      ty.className = 'tip-year';
-      ty.textContent = '0' + year;
-
-      var tb = document.createElement('button');
-      tb.className = 'tip-btn';
-      tb.type = 'button';
-      tb.dataset.key = key;
-      tb.textContent = '+ add a note';
-
-      tip.appendChild(tw);
-      tip.appendChild(ty);
-      tip.appendChild(tb);
+      head.appendChild(tipWeek);
+      head.appendChild(tipYear);
+      body.appendChild(tipNote);
+      body.appendChild(tipLink);
+      tip.appendChild(head);
+      tip.appendChild(body);
+      tip.appendChild(btn);
       a.appendChild(tip);
-      grid.appendChild(a);
+      row.appendChild(a);
     }
+    grid.appendChild(row);
   }
 
   // localStorage
@@ -365,21 +308,37 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   }
   function saveNotes(n) { localStorage.setItem(STORE, JSON.stringify(n)); }
 
-  function applyNoteClasses(notes) {
+  function refreshUI(notes) {
     document.querySelectorAll('.c').forEach(function (cell) {
-      var n = notes[cell.dataset.d];
-      cell.classList.toggle('has-note', !!n);
-      cell.classList.toggle('has-link', !!(n && n.url));
-    });
-  }
+      var key  = cell.dataset.d;
+      var note = notes[key];
+      var btn      = cell.querySelector('.tip-btn');
+      var body     = cell.querySelector('.tip-body');
+      var tipNote  = cell.querySelector('.tip-note');
+      var tipLink  = cell.querySelector('.tip-link');
 
-  function updateButtons(notes) {
-    document.querySelectorAll('.tip-btn').forEach(function (btn) {
-      btn.textContent = notes[btn.dataset.key] ? 'edit note' : '+ add a note';
-    });
-  }
+      cell.classList.toggle('has-note', !!(note && (note.text || note.url)));
+      cell.classList.toggle('has-link', !!(note && note.url));
 
-  function updateCount(notes) {
+      if (note && (note.text || note.url)) {
+        btn.textContent = 'edit note';
+        body.classList.add('on');
+        tipNote.textContent = note.text || '';
+        if (note.url) {
+          tipLink.href = note.url;
+          tipLink.textContent = '↗ ' + note.url.replace(/^https?:\/\//, '').replace(/\/$/, '').split('/')[0];
+          tipLink.style.display = '';
+        } else {
+          tipLink.style.display = 'none';
+        }
+      } else {
+        btn.textContent = '+ add a note';
+        body.classList.remove('on');
+        tipNote.textContent = '';
+        tipLink.style.display = 'none';
+      }
+    });
+
     var el = document.getElementById('noteCount');
     if (el) el.childNodes[0].textContent = Object.keys(notes).length;
   }
@@ -396,20 +355,15 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
 
   function openModal(key) {
     var notes = loadNotes();
-    var existing = notes[key] || {};
+    var ex = notes[key] || {};
     modalKey = key;
     modalWk.textContent = key;
-    modalText.value = existing.text || '';
-    modalUrl.value  = existing.url  || '';
+    modalText.value = ex.text || '';
+    modalUrl.value  = ex.url  || '';
     modalBg.classList.add('open');
     setTimeout(function () { modalText.focus(); }, 50);
   }
-
-  function closeModal() {
-    modalBg.classList.remove('open');
-    modalKey = null;
-  }
-
+  function closeModal() { modalBg.classList.remove('open'); modalKey = null; }
   function saveNote() {
     if (!modalKey) return;
     var text  = modalText.value.trim();
@@ -418,16 +372,14 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
     if (text || url) { notes[modalKey] = { text: text, url: url }; }
     else             { delete notes[modalKey]; }
     saveNotes(notes);
-    applyNoteClasses(notes);
-    updateButtons(notes);
-    updateCount(notes);
+    refreshUI(notes);
     closeModal();
   }
 
-  // Event delegation — one listener for all 520 buttons
+  // Event delegation — one listener covers all 520 buttons
   grid.addEventListener('click', function (e) {
     var btn = e.target.closest('.tip-btn');
-    if (btn && btn.dataset.key) openModal(btn.dataset.key);
+    if (btn && btn.dataset.key) { openModal(btn.dataset.key); return; }
   });
 
   modalClose.addEventListener('click',  closeModal);
@@ -436,11 +388,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 24px; }
   modalBg.addEventListener('click', function (e) { if (e.target === modalBg) closeModal(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
 
-  // Init
-  var notes = loadNotes();
-  applyNoteClasses(notes);
-  updateButtons(notes);
-  updateCount(notes);
+  refreshUI(loadNotes());
 }());
 </script>
 </body>
