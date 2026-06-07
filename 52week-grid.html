@@ -180,9 +180,16 @@ html, body { margin: 0; padding: 0; background: #101517; }
 .note-display { font-size: 15px; color: #dcdcde; line-height: 1.65; margin: 0 0 12px; white-space: pre-wrap; font-family: var(--ss); }
 .link-display { display: block; font-size: 14px; color: var(--ac); text-decoration: underline; margin-bottom: 8px; word-break: break-all; }
 .link-display:hover { color: #f0cfa0; }
-.wp-link { display: block; font-size: 14px; color: var(--ac); text-decoration: none; padding: 5px 0; border-bottom: 1px solid rgba(232,192,140,.1); line-height: 1.4; }
+.wp-link { display: block; text-decoration: none; padding: 5px 0; border-bottom: 1px solid rgba(232,192,140,.1); }
 .wp-link:last-child { border-bottom: none; }
-.wp-link:hover { color: #f0cfa0; text-decoration: underline; }
+.wp-link:hover .wp-link-title { text-decoration: underline; }
+.wp-link-title { display: block; font-size: 14px; color: var(--ac); line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wp-link-desc  { display: block; font-size: 12px; color: rgba(232,192,140,.45); line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px; }
+.cal-wp-active { font-weight:400; }
+a.cal-wp-url   { color: var(--ac); font-size: 10px; text-decoration: none; letter-spacing: .01em; }
+a.cal-wp-url:hover { text-decoration: underline; }
+.cal-wp-refresh { background: none; border: none; color: rgba(232,192,140,.5); font-size: 10px; cursor: pointer; padding: 0 0 0 4px; font-family: var(--ss); letter-spacing: .03em; }
+.cal-wp-refresh:hover { color: var(--ac); }
 
 /* Edit mode content */
 .modal-lbl   { display: block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: rgba(232,192,140,.65); font-weight: 600; margin-bottom: 7px; }
@@ -302,7 +309,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="v" id="entryCount">0<small>saved</small></span>
   </div>
   <div class="meta-item">
-    <span class="k">Calendar</span>
+    <span class="k" id="calLabel">Calendar <span style="opacity:.45">|</span> <span id="calWpLabel" style="font-weight:400;letter-spacing:.01em">WordPress Blog data</span></span>
     <div class="cal-btns">
       <button class="cal-btn" id="wpBlogBtn" data-tip="Fetch posts from a public WordPress blog">WP Blog</button>
       <button class="cal-btn" id="importBtn" data-tip="Accepts .ics (iCalendar) · .csv (Google Cal, Outlook)">↑ Import</button>
@@ -872,12 +879,22 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     viewNote.innerHTML = '';
     if (note.links && note.links.length) {
       for (var li = 0; li < note.links.length; li++) {
+        var item = note.links[li];
         var a = document.createElement('a');
-        a.href = note.links[li].url || '#';
+        a.href = item.url || '#';
         a.target = '_blank';
         a.rel = 'noopener';
         a.className = 'wp-link';
-        a.textContent = note.links[li].title;
+        var spanT = document.createElement('span');
+        spanT.className = 'wp-link-title';
+        spanT.textContent = item.title;
+        a.appendChild(spanT);
+        if (item.desc) {
+          var spanD = document.createElement('span');
+          spanD.className = 'wp-link-desc';
+          spanD.textContent = item.desc;
+          a.appendChild(spanD);
+        }
         viewNote.appendChild(a);
       }
       viewLink.style.display = 'none';
@@ -1134,10 +1151,11 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       var iw    = isoWeek(d);
       var key   = 'Week ' + iw.week + ', 0' + iw.year;
       var title = decodeHtml(post.title && post.title.rendered ? post.title.rendered : '(untitled)');
+      var desc  = post.excerpt && post.excerpt.rendered ? decodeHtml(post.excerpt.rendered) : '';
       var link  = post.link || '';
       if (!groups[key]) { groups[key] = []; wpLinks[key] = []; }
       groups[key].push(title);
-      wpLinks[key].push({ title: title, url: link });
+      wpLinks[key].push({ title: title, desc: desc, url: link });
     }
     return { groups: groups, wpLinks: wpLinks };
   }
@@ -1180,24 +1198,63 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   document.getElementById('wpBlogCancel').addEventListener('click', closeWpBlogModal);
   wpBlogBg.addEventListener('click', function (e) { if (e.target === wpBlogBg) closeWpBlogModal(); });
 
-  document.getElementById('wpBlogFetch').addEventListener('click', function () {
-    var raw = wpBlogUrlEl.value.trim().replace(/\/$/, '');
-    if (!raw) { wpBlogStatus.textContent = 'Please enter a URL.'; return; }
-    if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+  var WP_URL_KEY = 'lg-wp-url-v1';
+
+  function updateCalLabel() {
+    var stored = localStorage.getItem(WP_URL_KEY);
+    var lbl = document.getElementById('calWpLabel');
+    if (!lbl) return;
+    if (stored) {
+      var disp = stored.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      lbl.innerHTML = '';
+      var link = document.createElement('a');
+      link.href = stored;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.className = 'cal-wp-url';
+      link.textContent = disp;
+      var btn = document.createElement('button');
+      btn.className = 'cal-wp-refresh';
+      btn.title = 'Re-fetch posts from this blog';
+      btn.textContent = '↺ refresh';
+      btn.addEventListener('click', function (e) { e.preventDefault(); runWpFetch(stored); });
+      lbl.appendChild(link);
+      lbl.appendChild(btn);
+    } else {
+      lbl.textContent = 'WordPress Blog data';
+    }
+  }
+
+  function runWpFetch(url) {
     wpBlogStatus.textContent = 'Contacting blog…';
-    wpFetchPage(raw, 1, [], 1, function (posts) {
+    openWpBlogModal();
+    wpBlogUrlEl.value = url;
+    wpBlogStatus.textContent = 'Fetching…';
+    wpFetchPage(url, 1, [], 1, function (posts) {
       if (!posts.length) {
-        wpBlogStatus.textContent = 'No posts found. Is this a WordPress site?';
+        wpBlogStatus.textContent = 'No posts found.';
         return;
       }
       var result = wpPostsToGroups(posts);
       importUrlMap  = {};
       importWpLinks = result.wpLinks;
+      localStorage.setItem(WP_URL_KEY, url);
+      updateCalLabel();
       closeWpBlogModal();
       document.getElementById('importTitle').textContent = 'Import from WordPress';
       openImportModal(result.groups, posts.length);
     });
+  }
+
+  document.getElementById('wpBlogFetch').addEventListener('click', function () {
+    var raw = wpBlogUrlEl.value.trim().replace(/\/$/, '');
+    if (!raw) { wpBlogStatus.textContent = 'Please enter a URL.'; return; }
+    if (!/^https?:\/\//i.test(raw)) raw = 'https://' + raw;
+    wpBlogStatus.textContent = 'Contacting blog…';
+    runWpFetch(raw);
   });
+
+  updateCalLabel();
 
   document.getElementById('importClose').addEventListener('click', closeImportModal);
   importBg.addEventListener('click', function (e) { if (e.target === importBg) closeImportModal(); });
