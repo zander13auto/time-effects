@@ -134,3 +134,42 @@ See [WORDPRESS-DEPLOY.md](./WORDPRESS-DEPLOY.md) for three methods: iframe embed
 ## License
 
 [GPL-3.0](./LICENSE)
+
+---
+
+## Using AI to convert any event data to grid-importable CSV
+
+The import function accepts any CSV file that has at minimum two columns:
+
+- **`Subject`** — the event title (becomes the entry text for that week)
+- **`Start Date`** — the date the event falls on, in `MM/DD/YYYY` or `YYYY-MM-DD` format
+
+If you have events in a format the grid can't import directly — a spreadsheet, a database export, notes in a doc, an email thread, a project timeline, a list of reading dates, anything — you can paste the following prompt into any AI assistant (Claude, ChatGPT, etc.) along with your data to convert it:
+
+---
+
+### Copy-paste prompt
+
+```
+I have a list of events/entries below. Please convert them to a CSV file I can import into a weekly life grid.
+
+The CSV must have exactly these two columns (header row required):
+  Subject, Start Date
+
+Rules:
+- Subject: a short plain-text title for the event (no quotes unless the title contains a comma)
+- Start Date: the date the event starts, formatted MM/DD/YYYY
+- One row per event
+- If an event spans multiple days, output only the start date
+- If a date is ambiguous or missing, make your best guess and note it in parentheses after the title
+- Do not include any explanation — output only the CSV
+
+Here is my data:
+[PASTE YOUR DATA HERE]
+```
+
+---
+
+Paste your data after the last line and the AI will return a CSV you can save as a `.csv` file and import using the **↑ Import** button on the grid.
+
+**Works well for:** project milestone lists, reading logs, travel history, concert or event lists, work anniversaries, Notion database exports, Airtable exports, Apple Notes lists, and anything else with dates attached.
