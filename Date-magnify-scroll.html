@@ -363,5 +363,19 @@
   update();
 })();
 </script>
+<style>
+/* site footer — self-contained, safe on any page */
+.zr-footer{position:fixed;bottom:14px;right:18px;z-index:9999;display:flex;align-items:center;gap:7px;font-size:11px;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;color:rgba(255,255,255,.28);letter-spacing:.02em;pointer-events:none;}
+.zr-footer a{color:rgba(255,255,255,.38);text-decoration:none;pointer-events:auto;}
+.zr-footer a:hover{color:rgba(255,255,255,.75);text-decoration:underline;}
+.zr-footer .zrs{color:rgba(255,255,255,.12);}
+</style>
+<footer class="zr-footer" aria-label="Site info">
+  <a href="https://rosefutures.com" target="_blank" rel="noopener">Alexander Rose</a>
+  <span class="zrs">·</span>
+  <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPL-3.0</a>
+  <span class="zrs">·</span>
+  <a href="https://github.com/zander13auto/time-effects" target="_blank" rel="noopener">GitHub</a>
+</footer>
 </body>
 </html>
