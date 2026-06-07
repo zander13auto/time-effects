@@ -193,6 +193,16 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 .btn-done:hover { background: rgba(232,192,140,.2); }
 .btn-save   { background: var(--ac); border: none; color: var(--bg); padding: 9px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--ss); }
 .btn-save:hover { background: #f0cfa0; }
+.btn-delete { background: #b03a2e; border: none; color: #fff; padding: 9px 20px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: var(--ss); }
+.btn-delete:hover { background: #c0392b; }
+
+/* Reset button in meta bar */
+.meta-reset { margin-left: auto; display: flex; align-items: center; }
+.reset-btn { background: none; border: 1px solid rgba(232,192,140,.2); color: rgba(232,192,140,.45); font-size: 10px; padding: 3px 9px; border-radius: 3px; cursor: pointer; font-family: var(--ss); letter-spacing: .04em; line-height: 1.6; }
+.reset-btn:hover { border-color: #b03a2e; color: #e07060; }
+
+/* Lens date range */
+.lens-dates { font-family: var(--ss); font-size: 11px; color: rgba(16,21,23,.48); letter-spacing: .03em; }
 </style>
 </head>
 <body>
@@ -233,9 +243,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="k">Weeks</span>
     <span class="v" id="weeksDisplay"></span>
   </div>
-  <div class="meta-item">
-    <span class="k">Notes</span>
-    <span class="v" id="noteCount">0<small>saved</small></span>
+  <div class="meta-reset">
+    <button class="reset-btn" id="resetBtn" style="display:none" title="Clear all saved notes">↺ Reset notes</button>
   </div>
 </div>
 
@@ -252,6 +261,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   <div class="lens-head">
     <span class="lens-week" id="lensWeek"></span>
     <span class="lens-year" id="lensYear"></span>
+    <span class="lens-dates" id="lensDates"></span>
   </div>
   <div class="lens-preview" id="lensPreview">
     <div class="lens-divider"></div>
@@ -297,6 +307,25 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   </div>
 </div>
 
+<!-- Reset confirmation modal -->
+<div class="modal-bg" id="resetBg">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-head">
+      <span class="modal-wk">Clear all notes?</span>
+      <button class="modal-close" id="resetClose" aria-label="Close">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;flex:1;min-height:0">
+      <div class="modal-body">
+        <p style="font-size:15px;color:#dcdcde;margin:0;line-height:1.65">This will permanently delete all saved notes from your browser. This cannot be undone.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="resetCancel">Cancel</button>
+        <button class="btn-delete" id="resetConfirm">Clear all notes</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 (function () {
   'use strict';
@@ -313,6 +342,26 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     var ss = parseInt(localStorage.getItem(STORE_START), 10);
     if (ss >= 1 && ss <= 9999) START_YEAR = ss;
   } catch (e) {}
+
+  /* ── Week date range ─────────────────────────────────────────── */
+  var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  function isoWeekStart(year, week) {
+    // Jan 4 is always in ISO week 1
+    var jan4 = new Date(Date.UTC(year, 0, 4));
+    var dow  = jan4.getUTCDay() || 7;          // 1=Mon … 7=Sun
+    var w1mon = new Date(jan4);
+    w1mon.setUTCDate(jan4.getUTCDate() - (dow - 1));
+    var wStart = new Date(w1mon);
+    wStart.setUTCDate(w1mon.getUTCDate() + (week - 1) * 7);
+    return wStart;
+  }
+  function formatWeekRange(year, week) {
+    var s = isoWeekStart(year, week);
+    var e = new Date(s); e.setUTCDate(s.getUTCDate() + 6);
+    var sm = MONTHS[s.getUTCMonth()], sd = s.getUTCDate();
+    var em = MONTHS[e.getUTCMonth()], ed = e.getUTCDate();
+    return sm === em ? sm + ' ' + sd + '–' + ed : sm + ' ' + sd + ' – ' + em + ' ' + ed;
+  }
 
   /* ── ISO week ─────────────────────────────────────────────────── */
   function isoWeek(d) {
@@ -479,8 +528,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       cell.classList.toggle('has-note', !!(note && (note.text || note.url)));
       cell.classList.toggle('has-link', !!(note && note.url));
     }
-    var nc = document.getElementById('noteCount');
-    if (nc) nc.innerHTML = Object.keys(notes).length + '<small>saved</small>';
+    var rb = document.getElementById('resetBtn');
+    if (rb) rb.style.display = Object.keys(notes).length ? '' : 'none';
   }
 
   /* ── Floating lens ────────────────────────────────────────────── */
@@ -500,6 +549,9 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     var parts = key.split(', ');
     lensWeek.textContent = parts[0];
     lensYear.textContent = parts[1];
+    var wn = parseInt(parts[0].replace('Week ', ''), 10);
+    var yn = parseInt(parts[1], 10);
+    document.getElementById('lensDates').textContent = formatWeekRange(yn, wn);
     var note = loadNotes()[key];
     if (note && (note.text || note.url)) {
       lensPreview.classList.add('on');
@@ -622,7 +674,26 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     if (hadNote) { showView(loadNotes()[modalKey] || {}); } else { closeModal(); }
   });
   modalBg.addEventListener('click', function (e) { if (e.target === modalBg) closeModal(); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeReset(); } });
+
+  /* ── Reset notes modal ────────────────────────────────────────── */
+  var resetBg = document.getElementById('resetBg');
+  function openReset()  { resetBg.classList.add('open'); }
+  function closeReset() { resetBg.classList.remove('open'); }
+
+  document.getElementById('resetBtn').addEventListener('click', openReset);
+  document.getElementById('resetClose').addEventListener('click',  closeReset);
+  document.getElementById('resetCancel').addEventListener('click', closeReset);
+  resetBg.addEventListener('click', function (e) { if (e.target === resetBg) closeReset(); });
+  document.getElementById('resetConfirm').addEventListener('click', function () {
+    try { localStorage.removeItem(STORE); } catch (e) {}
+    closeReset();
+    refreshCells({});
+    var cells = document.querySelectorAll('.c');
+    for (var i = 0; i < cells.length; i++) {
+      cells[i].classList.remove('has-note', 'has-link');
+    }
+  });
 
   /* ── Init ─────────────────────────────────────────────────────── */
   buildGrid();
@@ -640,6 +711,8 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   <a href="https://www.gnu.org/licenses/gpl-3.0.html" target="_blank" rel="noopener">GPL-3.0</a>
   <span class="zrs">·</span>
   <a href="https://github.com/zander13auto/time-effects" target="_blank" rel="noopener">GitHub</a>
+  <span class="zrs">·</span>
+  <a href="https://github.com/zander13auto/time-effects/blob/main/WORDPRESS-DEPLOY.md" target="_blank" rel="noopener">WordPress</a>
 </footer>
 </body>
 </html>
