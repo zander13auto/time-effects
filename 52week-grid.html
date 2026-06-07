@@ -8,42 +8,137 @@
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: #101517; }
 
-.lg-root {
+/* ── Design tokens ─────────────────────────────────────────────── */
+:root {
   --ac: #e8c08c;
   --bl: #3858E9;
   --sf: 'Recoleta','Cormorant Garamond','Times New Roman',serif;
   --ss: 'Inter','SF Pro Display','Helvetica Neue',Arial,sans-serif;
-  background: #101517;
+  --bg: #101517;
+  --bg2: #0a0d0f;
+  --bd: rgba(232,192,140,.18);
+}
+
+/* ── Page ───────────────────────────────────────────────────────── */
+.root {
+  background: var(--bg);
   color: #fff;
   font-family: var(--ss);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   padding: 64px 32px 96px;
 }
-.lg-wrap { max-width: 1280px; margin: 0 auto; }
-.eb { display:inline-block; font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--ac); margin-bottom:24px; }
-.tt { font-family:var(--sf); font-weight:400; letter-spacing:-.02em; line-height:1.05; font-size:clamp(40px,6vw,72px); color:#fff; margin:0 0 16px; }
-.tt em { font-style:italic; color:var(--ac); font-weight:300; }
-.ld { font-size:17px; color:#dcdcde; max-width:680px; margin:0 0 40px; line-height:1.6; }
-.mt { display:flex; gap:32px; flex-wrap:wrap; margin-bottom:40px; padding:20px 24px; background:rgba(232,192,140,.04); border:1px solid rgba(232,192,140,.18); border-radius:8px; }
-.mi { display:flex; flex-direction:column; gap:4px; }
-.mi .k { font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--ac); font-weight:600; }
-.mi .v { font-family:var(--sf); font-size:22px; color:#fff; font-feature-settings:'tnum'; }
-.mi .v small { font-size:13px; color:#a7aaad; font-family:var(--ss); margin-left:6px; }
+.wrap { max-width: 1280px; margin: 0 auto; }
 
-/* Container */
-.cv { background:#0a0d0f; border:1px solid rgba(232,192,140,.25); border-radius:6px; padding:36px 24px 24px 64px; position:relative; }
-.ax { position:absolute; top:14px; left:64px; right:24px; display:grid; grid-template-columns:repeat(52,1fr); font-size:10px; color:rgba(232,192,140,.7); letter-spacing:.06em; font-feature-settings:'tnum'; font-weight:600; text-align:center; }
-.ay { position:absolute; top:36px; left:8px; bottom:24px; display:grid; grid-template-rows:repeat(10,1fr); font-size:10px; color:rgba(232,192,140,.7); letter-spacing:.06em; font-feature-settings:'tnum'; font-weight:600; text-align:right; padding-right:10px; width:50px; align-items:center; }
+/* ── Header type ────────────────────────────────────────────────── */
+.eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ac);
+  margin-bottom: 24px;
+}
+.title {
+  font-family: var(--sf);
+  font-weight: 400;
+  letter-spacing: -.02em;
+  line-height: 1.05;
+  font-size: clamp(40px, 6vw, 72px);
+  color: #fff;
+  margin: 0 0 16px;
+}
+.title em { font-style: italic; color: var(--ac); font-weight: 300; }
+.lead {
+  font-size: 17px;
+  color: #dcdcde;
+  max-width: 680px;
+  margin: 0 0 40px;
+  line-height: 1.6;
+}
 
-/* Grid */
-.gr { display:grid; grid-template-columns:repeat(52,1fr); gap:2px; background:rgba(232,192,140,.18); padding:2px; border-radius:3px; }
+/* ── Meta strip ─────────────────────────────────────────────────── */
+.meta {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+  padding: 20px 24px;
+  background: rgba(232,192,140,.04);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+}
+.meta-item { display: flex; flex-direction: column; gap: 4px; }
+.meta-item .k {
+  font-size: 10px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--ac);
+  font-weight: 600;
+}
+.meta-item .v {
+  font-family: var(--sf);
+  font-size: 22px;
+  color: #fff;
+  font-feature-settings: 'tnum';
+}
+.meta-item .v small {
+  font-size: 13px;
+  color: #a7aaad;
+  font-family: var(--ss);
+  margin-left: 6px;
+}
 
-/* ── Cell ──────────────────────────────────────────────────────────
-   The <a> stays at native size — correct hit detection, no skipping.
-   All visual scaling lives in ::before with pointer-events:none.
-   transform-origin: 50% 100% → tile grows UPWARD from bottom edge.
-────────────────────────────────────────────────────────────────── */
+/* ── Grid container ─────────────────────────────────────────────── */
+.container {
+  background: var(--bg2);
+  border: 1px solid rgba(232,192,140,.25);
+  border-radius: 6px;
+  padding: 36px 24px 24px 64px;
+  position: relative;
+}
+.axis-x {
+  position: absolute;
+  top: 14px; left: 64px; right: 24px;
+  display: grid;
+  grid-template-columns: repeat(52, 1fr);
+  font-size: 10px;
+  color: rgba(232,192,140,.7);
+  letter-spacing: .06em;
+  font-feature-settings: 'tnum';
+  font-weight: 600;
+  text-align: center;
+}
+.axis-y {
+  position: absolute;
+  top: 36px; left: 8px; bottom: 24px;
+  width: 50px;
+  display: grid;
+  grid-template-rows: repeat(10, 1fr);
+  font-size: 10px;
+  color: rgba(232,192,140,.7);
+  letter-spacing: .06em;
+  font-feature-settings: 'tnum';
+  font-weight: 600;
+  text-align: right;
+  padding-right: 10px;
+  align-items: center;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(52, 1fr);
+  gap: 2px;
+  background: rgba(232,192,140,.18);
+  padding: 2px;
+  border-radius: 3px;
+}
+
+/* ── Cell ───────────────────────────────────────────────────────────
+   <a> stays at native size for correct pointer hit-detection.
+   All visual scaling lives in ::before (pointer-events: none).
+   transform-origin: 50% 100% → tile grows upward from bottom edge.
+──────────────────────────────────────────────────────────────────── */
 .c {
   aspect-ratio: 1/1;
   text-decoration: none;
@@ -53,28 +148,28 @@ html, body { margin: 0; padding: 0; background: #101517; }
   line-height: 1;
   overflow: visible;
 }
-
 .c::before {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
   transform-origin: 50% 100%;
-  transition: transform .18s cubic-bezier(.22,.61,.36,1),
-              background .15s ease,
-              border-color .15s ease,
-              box-shadow .15s ease,
-              border-radius .15s ease;
   background: #1d2327;
   border: 1px solid rgba(232,192,140,.1);
+  transition:
+    transform .18s cubic-bezier(.22,.61,.36,1),
+    background .15s ease,
+    border-color .15s ease,
+    box-shadow .15s ease,
+    border-radius .15s ease;
 }
 
-/* Note state variants */
-.c.n::before   { background: rgba(232,192,140,.5); border-color: rgba(232,192,140,.8); }
-.c.n.l::before { background: var(--ac); }
-.c.t::before   { outline: 2px solid var(--bl); outline-offset: -1px; }
+/* Note states */
+.c.has-note::before          { background: rgba(232,192,140,.5); border-color: rgba(232,192,140,.8); }
+.c.has-note.has-link::before { background: var(--ac); }
+.c.is-today::before          { outline: 2px solid var(--bl); outline-offset: -1px; }
 
-/* Hovered cell — z-index on .c keeps stacking correct */
+/* Hover — center cell */
 .c:hover { z-index: 9; }
 .c:hover::before {
   transform: scale(6);
@@ -84,9 +179,9 @@ html, body { margin: 0; padding: 0; background: #101517; }
   box-shadow: 0 0 0 1px var(--ac), 0 12px 36px rgba(0,0,0,.8);
 }
 
-/* ±1 */
-.c:hover + .c              { z-index: 7; }
-.c:has(+ .c:hover)         { z-index: 7; }
+/* Fisheye neighbours ±1 */
+.c:hover + .c,
+.c:has(+ .c:hover) { z-index: 7; }
 .c:hover + .c::before,
 .c:has(+ .c:hover)::before {
   transform: scale(3.6);
@@ -96,8 +191,8 @@ html, body { margin: 0; padding: 0; background: #101517; }
 }
 
 /* ±2 */
-.c:hover + .c + .c              { z-index: 5; }
-.c:has(+ .c + .c:hover)         { z-index: 5; }
+.c:hover + .c + .c,
+.c:has(+ .c + .c:hover) { z-index: 5; }
 .c:hover + .c + .c::before,
 .c:has(+ .c + .c:hover)::before {
   transform: scale(2.2);
@@ -105,20 +200,19 @@ html, body { margin: 0; padding: 0; background: #101517; }
 }
 
 /* ±3 */
-.c:hover + .c + .c + .c              { z-index: 3; }
-.c:has(+ .c + .c + .c:hover)         { z-index: 3; }
+.c:hover + .c + .c + .c,
+.c:has(+ .c + .c + .c:hover) { z-index: 3; }
 .c:hover + .c + .c + .c::before,
 .c:has(+ .c + .c + .c:hover)::before {
   transform: scale(1.45);
   background: rgba(232,192,140,.22);
 }
 
-/* ── Lens overlay ───────────────────────────────────────────────
-   Positioned by JS at the actual visual coordinates of the scaled
-   cell (no CSS transform on the lens itself — already at 6× size).
-   RAF loop reads CSS :hover state so it's always in sync.
-────────────────────────────────────────────────────────────────── */
-.lg-lens {
+/* ── Lens overlay ───────────────────────────────────────────────────
+   JS positions this at the actual visual coordinates of the 6× tile.
+   No CSS transform — already at real size. RAF loop tracks :hover.
+──────────────────────────────────────────────────────────────────── */
+.lens {
   position: absolute;
   pointer-events: none;
   z-index: 25;
@@ -130,8 +224,8 @@ html, body { margin: 0; padding: 0; background: #101517; }
   opacity: 0;
   transition: opacity .12s ease;
 }
-.lg-lens.visible { opacity: 1; }
-.lg-lens-title {
+.lens.on { opacity: 1; }
+.lens-title {
   font-family: var(--sf);
   font-size: 14px;
   font-weight: 600;
@@ -141,7 +235,7 @@ html, body { margin: 0; padding: 0; background: #101517; }
   pointer-events: none;
   white-space: nowrap;
 }
-.lg-lens-add {
+.lens-add {
   font-family: var(--ss);
   font-size: 10px;
   color: rgba(16,21,23,.5);
@@ -154,10 +248,10 @@ html, body { margin: 0; padding: 0; background: #101517; }
   white-space: nowrap;
   line-height: 1;
 }
-.lg-lens-add:hover { color: #101517; }
+.lens-add:hover { color: #101517; }
 
-/* ── Note modal ─────────────────────────────────────────────── */
-.lg-modal-bg {
+/* ── Modal ──────────────────────────────────────────────────────── */
+.modal-bg {
   display: none;
   position: fixed;
   inset: 0;
@@ -166,29 +260,29 @@ html, body { margin: 0; padding: 0; background: #101517; }
   align-items: center;
   justify-content: center;
 }
-.lg-modal-bg.open { display: flex; }
-.lg-modal {
+.modal-bg.open { display: flex; }
+.modal {
   background: #1a1f23;
-  border: 1px solid rgba(232,192,140,.22);
+  border: 1px solid var(--bd);
   border-radius: 12px;
   padding: 32px;
   width: 440px;
   max-width: calc(100vw - 48px);
 }
-.lg-modal-head {
+.modal-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 20px;
 }
-.lg-modal-wk {
+.modal-wk {
   font-family: var(--sf);
   font-size: 20px;
   color: var(--ac);
   font-weight: 400;
   line-height: 1.2;
 }
-.lg-modal-close {
+.modal-close {
   background: none;
   border: none;
   color: #5a6370;
@@ -198,8 +292,8 @@ html, body { margin: 0; padding: 0; background: #101517; }
   line-height: 1;
   margin-top: -2px;
 }
-.lg-modal-close:hover { color: #fff; }
-.lg-modal-lbl {
+.modal-close:hover { color: #fff; }
+.modal-lbl {
   display: block;
   font-size: 10px;
   letter-spacing: .14em;
@@ -208,43 +302,23 @@ html, body { margin: 0; padding: 0; background: #101517; }
   font-weight: 600;
   margin-bottom: 7px;
 }
-.lg-modal-text {
+.modal-input {
   width: 100%;
-  background: #101517;
-  border: 1px solid rgba(232,192,140,.18);
+  background: var(--bg);
+  border: 1px solid var(--bd);
   border-radius: 6px;
   color: #dcdcde;
   font-family: var(--ss);
-  font-size: 15px;
-  line-height: 1.6;
   padding: 11px 14px;
-  resize: vertical;
-  min-height: 96px;
+  outline: none;
   margin-bottom: 14px;
-  outline: none;
 }
-.lg-modal-text:focus { border-color: rgba(232,192,140,.45); }
-.lg-modal-url {
-  width: 100%;
-  background: #101517;
-  border: 1px solid rgba(232,192,140,.18);
-  border-radius: 6px;
-  color: #dcdcde;
-  font-family: var(--ss);
-  font-size: 14px;
-  padding: 10px 14px;
-  margin-bottom: 24px;
-  outline: none;
-}
-.lg-modal-url:focus { border-color: rgba(232,192,140,.45); }
-.lg-modal-text::placeholder,
-.lg-modal-url::placeholder { color: #384048; }
-.lg-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-.lg-btn-cancel {
+.modal-input:focus { border-color: rgba(232,192,140,.45); }
+textarea.modal-input { font-size: 15px; line-height: 1.6; resize: vertical; min-height: 96px; }
+input.modal-input    { font-size: 14px; margin-bottom: 24px; }
+.modal-input::placeholder { color: #384048; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.btn-cancel {
   background: transparent;
   border: 1px solid rgba(232,192,140,.2);
   color: #7a8390;
@@ -254,11 +328,11 @@ html, body { margin: 0; padding: 0; background: #101517; }
   cursor: pointer;
   font-family: var(--ss);
 }
-.lg-btn-cancel:hover { border-color: rgba(232,192,140,.45); color: #fff; }
-.lg-btn-save {
+.btn-cancel:hover { border-color: rgba(232,192,140,.45); color: #fff; }
+.btn-save {
   background: var(--ac);
   border: none;
-  color: #101517;
+  color: var(--bg);
   padding: 9px 20px;
   border-radius: 6px;
   font-size: 14px;
@@ -266,107 +340,170 @@ html, body { margin: 0; padding: 0; background: #101517; }
   cursor: pointer;
   font-family: var(--ss);
 }
-.lg-btn-save:hover { background: #f0cfa0; }
+.btn-save:hover { background: #f0cfa0; }
 
-.ft { background:#000; padding:32px; text-align:center; font-size:12px; color:#a7aaad; letter-spacing:.06em; margin:64px -32px -96px; }
-.ft a { color:var(--ac); text-decoration:none; }
+/* ── Footer ─────────────────────────────────────────────────────── */
+.footer {
+  background: #000;
+  padding: 32px;
+  text-align: center;
+  font-size: 12px;
+  color: #a7aaad;
+  letter-spacing: .06em;
+  margin: 64px -32px -96px;
+}
+.footer a { color: var(--ac); text-decoration: none; }
 </style>
 </head>
 <body>
-<div class="lg-root"><div class="lg-wrap">
-<span class="eb">Prototype · 52 × 10 · Fisheye hover · JS notes</span>
-<h1 class="tt">A decade, <em>one week at a time.</em></h1>
-<p class="ld">520 cells spanning one decade. Hover any cell to magnify — neighboring cells scale with a fisheye effect. Click "add a note" on any week to annotate it.</p>
-<div class="mt">
-  <div class="mi"><span class="k">Span</span><span class="v">02026<small>–</small>02035</span></div>
-  <div class="mi"><span class="k">Weeks</span><span class="v">520</span></div>
-  <div class="mi"><span class="k">Sample notes</span><span class="v">5</span></div>
-  <div class="mi"><span class="k">Notes stored</span><span class="v" id="noteCount">0<small>localStorage</small></span></div>
+<div class="root"><div class="wrap">
+
+<span class="eyebrow">Prototype v20260607·1529 · 52 × 10 · Fisheye hover · JS notes</span>
+<h1 class="title">A decade, <em>one week at a time.</em></h1>
+<p class="lead">520 cells spanning one decade. Hover any cell to magnify — neighboring cells scale with a fisheye effect. Click "add a note" on any week to annotate it.</p>
+
+<div class="meta">
+  <div class="meta-item"><span class="k">Span</span><span class="v">02026<small>–</small>02035</span></div>
+  <div class="meta-item"><span class="k">Weeks</span><span class="v">520</span></div>
+  <div class="meta-item"><span class="k">Notes stored</span><span class="v" id="noteCount">0<small>localStorage</small></span></div>
 </div>
-<div class="cv">
-  <div class="ax"><span>1</span><span></span><span></span><span></span><span>5</span><span></span><span></span><span></span><span></span><span>10</span><span></span><span></span><span></span><span></span><span>15</span><span></span><span></span><span></span><span></span><span>20</span><span></span><span></span><span></span><span></span><span>25</span><span></span><span></span><span></span><span></span><span>30</span><span></span><span></span><span></span><span></span><span>35</span><span></span><span></span><span></span><span></span><span>40</span><span></span><span></span><span></span><span></span><span>45</span><span></span><span></span><span></span><span></span><span>50</span><span></span><span>52</span></div>
-  <div class="ay"><span>02026</span><span>02027</span><span>02028</span><span>02029</span><span>02030</span><span>02031</span><span>02032</span><span>02033</span><span>02034</span><span>02035</span></div>
-  <div class="gr">
-    <a class="c n" data-d="Week 1, 02026"></a><a class="c" data-d="Week 2, 02026"></a><a class="c" data-d="Week 3, 02026"></a><a class="c" data-d="Week 4, 02026"></a><a class="c" data-d="Week 5, 02026"></a><a class="c" data-d="Week 6, 02026"></a><a class="c" data-d="Week 7, 02026"></a><a class="c" data-d="Week 8, 02026"></a><a class="c" data-d="Week 9, 02026"></a><a class="c" data-d="Week 10, 02026"></a><a class="c" data-d="Week 11, 02026"></a><a class="c" data-d="Week 12, 02026"></a><a class="c" data-d="Week 13, 02026"></a><a class="c" data-d="Week 14, 02026"></a><a class="c" data-d="Week 15, 02026"></a><a class="c" data-d="Week 16, 02026"></a><a class="c" data-d="Week 17, 02026"></a><a class="c" data-d="Week 18, 02026"></a><a class="c" data-d="Week 19, 02026"></a><a class="c" data-d="Week 20, 02026"></a><a class="c" data-d="Week 21, 02026"></a><a class="c" data-d="Week 22, 02026"></a><a class="c t" data-d="Week 23, 02026"></a><a class="c" data-d="Week 24, 02026"></a><a class="c" data-d="Week 25, 02026"></a><a class="c" data-d="Week 26, 02026"></a><a class="c" data-d="Week 27, 02026"></a><a class="c" data-d="Week 28, 02026"></a><a class="c" data-d="Week 29, 02026"></a><a class="c" data-d="Week 30, 02026"></a><a class="c" data-d="Week 31, 02026"></a><a class="c n l" data-d="Week 32, 02026"></a><a class="c" data-d="Week 33, 02026"></a><a class="c" data-d="Week 34, 02026"></a><a class="c" data-d="Week 35, 02026"></a><a class="c" data-d="Week 36, 02026"></a><a class="c" data-d="Week 37, 02026"></a><a class="c" data-d="Week 38, 02026"></a><a class="c" data-d="Week 39, 02026"></a><a class="c" data-d="Week 40, 02026"></a><a class="c" data-d="Week 41, 02026"></a><a class="c" data-d="Week 42, 02026"></a><a class="c" data-d="Week 43, 02026"></a><a class="c" data-d="Week 44, 02026"></a><a class="c" data-d="Week 45, 02026"></a><a class="c" data-d="Week 46, 02026"></a><a class="c" data-d="Week 47, 02026"></a><a class="c" data-d="Week 48, 02026"></a><a class="c" data-d="Week 49, 02026"></a><a class="c" data-d="Week 50, 02026"></a><a class="c" data-d="Week 51, 02026"></a><a class="c" data-d="Week 52, 02026"></a>
-    <a class="c" data-d="Week 1, 02027"></a><a class="c" data-d="Week 2, 02027"></a><a class="c" data-d="Week 3, 02027"></a><a class="c" data-d="Week 4, 02027"></a><a class="c" data-d="Week 5, 02027"></a><a class="c" data-d="Week 6, 02027"></a><a class="c" data-d="Week 7, 02027"></a><a class="c" data-d="Week 8, 02027"></a><a class="c" data-d="Week 9, 02027"></a><a class="c" data-d="Week 10, 02027"></a><a class="c" data-d="Week 11, 02027"></a><a class="c" data-d="Week 12, 02027"></a><a class="c" data-d="Week 13, 02027"></a><a class="c" data-d="Week 14, 02027"></a><a class="c" data-d="Week 15, 02027"></a><a class="c" data-d="Week 16, 02027"></a><a class="c" data-d="Week 17, 02027"></a><a class="c" data-d="Week 18, 02027"></a><a class="c" data-d="Week 19, 02027"></a><a class="c" data-d="Week 20, 02027"></a><a class="c" data-d="Week 21, 02027"></a><a class="c" data-d="Week 22, 02027"></a><a class="c" data-d="Week 23, 02027"></a><a class="c" data-d="Week 24, 02027"></a><a class="c" data-d="Week 25, 02027"></a><a class="c" data-d="Week 26, 02027"></a><a class="c" data-d="Week 27, 02027"></a><a class="c" data-d="Week 28, 02027"></a><a class="c" data-d="Week 29, 02027"></a><a class="c" data-d="Week 30, 02027"></a><a class="c" data-d="Week 31, 02027"></a><a class="c" data-d="Week 32, 02027"></a><a class="c" data-d="Week 33, 02027"></a><a class="c" data-d="Week 34, 02027"></a><a class="c" data-d="Week 35, 02027"></a><a class="c" data-d="Week 36, 02027"></a><a class="c" data-d="Week 37, 02027"></a><a class="c" data-d="Week 38, 02027"></a><a class="c" data-d="Week 39, 02027"></a><a class="c" data-d="Week 40, 02027"></a><a class="c" data-d="Week 41, 02027"></a><a class="c" data-d="Week 42, 02027"></a><a class="c" data-d="Week 43, 02027"></a><a class="c" data-d="Week 44, 02027"></a><a class="c" data-d="Week 45, 02027"></a><a class="c" data-d="Week 46, 02027"></a><a class="c" data-d="Week 47, 02027"></a><a class="c" data-d="Week 48, 02027"></a><a class="c" data-d="Week 49, 02027"></a><a class="c" data-d="Week 50, 02027"></a><a class="c" data-d="Week 51, 02027"></a><a class="c" data-d="Week 52, 02027"></a>
-    <a class="c" data-d="Week 1, 02028"></a><a class="c" data-d="Week 2, 02028"></a><a class="c" data-d="Week 3, 02028"></a><a class="c" data-d="Week 4, 02028"></a><a class="c" data-d="Week 5, 02028"></a><a class="c" data-d="Week 6, 02028"></a><a class="c" data-d="Week 7, 02028"></a><a class="c" data-d="Week 8, 02028"></a><a class="c" data-d="Week 9, 02028"></a><a class="c" data-d="Week 10, 02028"></a><a class="c" data-d="Week 11, 02028"></a><a class="c" data-d="Week 12, 02028"></a><a class="c" data-d="Week 13, 02028"></a><a class="c" data-d="Week 14, 02028"></a><a class="c" data-d="Week 15, 02028"></a><a class="c" data-d="Week 16, 02028"></a><a class="c" data-d="Week 17, 02028"></a><a class="c" data-d="Week 18, 02028"></a><a class="c" data-d="Week 19, 02028"></a><a class="c" data-d="Week 20, 02028"></a><a class="c" data-d="Week 21, 02028"></a><a class="c" data-d="Week 22, 02028"></a><a class="c" data-d="Week 23, 02028"></a><a class="c" data-d="Week 24, 02028"></a><a class="c" data-d="Week 25, 02028"></a><a class="c" data-d="Week 26, 02028"></a><a class="c" data-d="Week 27, 02028"></a><a class="c" data-d="Week 28, 02028"></a><a class="c" data-d="Week 29, 02028"></a><a class="c" data-d="Week 30, 02028"></a><a class="c" data-d="Week 31, 02028"></a><a class="c" data-d="Week 32, 02028"></a><a class="c" data-d="Week 33, 02028"></a><a class="c" data-d="Week 34, 02028"></a><a class="c" data-d="Week 35, 02028"></a><a class="c" data-d="Week 36, 02028"></a><a class="c" data-d="Week 37, 02028"></a><a class="c" data-d="Week 38, 02028"></a><a class="c" data-d="Week 39, 02028"></a><a class="c" data-d="Week 40, 02028"></a><a class="c" data-d="Week 41, 02028"></a><a class="c" data-d="Week 42, 02028"></a><a class="c" data-d="Week 43, 02028"></a><a class="c" data-d="Week 44, 02028"></a><a class="c" data-d="Week 45, 02028"></a><a class="c" data-d="Week 46, 02028"></a><a class="c" data-d="Week 47, 02028"></a><a class="c" data-d="Week 48, 02028"></a><a class="c" data-d="Week 49, 02028"></a><a class="c" data-d="Week 50, 02028"></a><a class="c" data-d="Week 51, 02028"></a><a class="c" data-d="Week 52, 02028"></a>
-    <a class="c" data-d="Week 1, 02029"></a><a class="c" data-d="Week 2, 02029"></a><a class="c" data-d="Week 3, 02029"></a><a class="c" data-d="Week 4, 02029"></a><a class="c" data-d="Week 5, 02029"></a><a class="c" data-d="Week 6, 02029"></a><a class="c" data-d="Week 7, 02029"></a><a class="c" data-d="Week 8, 02029"></a><a class="c" data-d="Week 9, 02029"></a><a class="c" data-d="Week 10, 02029"></a><a class="c" data-d="Week 11, 02029"></a><a class="c" data-d="Week 12, 02029"></a><a class="c" data-d="Week 13, 02029"></a><a class="c" data-d="Week 14, 02029"></a><a class="c" data-d="Week 15, 02029"></a><a class="c" data-d="Week 16, 02029"></a><a class="c" data-d="Week 17, 02029"></a><a class="c" data-d="Week 18, 02029"></a><a class="c" data-d="Week 19, 02029"></a><a class="c" data-d="Week 20, 02029"></a><a class="c" data-d="Week 21, 02029"></a><a class="c" data-d="Week 22, 02029"></a><a class="c" data-d="Week 23, 02029"></a><a class="c" data-d="Week 24, 02029"></a><a class="c" data-d="Week 25, 02029"></a><a class="c" data-d="Week 26, 02029"></a><a class="c" data-d="Week 27, 02029"></a><a class="c" data-d="Week 28, 02029"></a><a class="c" data-d="Week 29, 02029"></a><a class="c" data-d="Week 30, 02029"></a><a class="c" data-d="Week 31, 02029"></a><a class="c" data-d="Week 32, 02029"></a><a class="c" data-d="Week 33, 02029"></a><a class="c" data-d="Week 34, 02029"></a><a class="c" data-d="Week 35, 02029"></a><a class="c" data-d="Week 36, 02029"></a><a class="c" data-d="Week 37, 02029"></a><a class="c" data-d="Week 38, 02029"></a><a class="c" data-d="Week 39, 02029"></a><a class="c" data-d="Week 40, 02029"></a><a class="c" data-d="Week 41, 02029"></a><a class="c" data-d="Week 42, 02029"></a><a class="c" data-d="Week 43, 02029"></a><a class="c" data-d="Week 44, 02029"></a><a class="c" data-d="Week 45, 02029"></a><a class="c" data-d="Week 46, 02029"></a><a class="c" data-d="Week 47, 02029"></a><a class="c" data-d="Week 48, 02029"></a><a class="c" data-d="Week 49, 02029"></a><a class="c" data-d="Week 50, 02029"></a><a class="c" data-d="Week 51, 02029"></a><a class="c" data-d="Week 52, 02029"></a>
-    <a class="c" data-d="Week 1, 02030"></a><a class="c" data-d="Week 2, 02030"></a><a class="c" data-d="Week 3, 02030"></a><a class="c" data-d="Week 4, 02030"></a><a class="c" data-d="Week 5, 02030"></a><a class="c" data-d="Week 6, 02030"></a><a class="c" data-d="Week 7, 02030"></a><a class="c" data-d="Week 8, 02030"></a><a class="c" data-d="Week 9, 02030"></a><a class="c" data-d="Week 10, 02030"></a><a class="c" data-d="Week 11, 02030"></a><a class="c" data-d="Week 12, 02030"></a><a class="c" data-d="Week 13, 02030"></a><a class="c n" data-d="Week 14, 02030"></a><a class="c" data-d="Week 15, 02030"></a><a class="c" data-d="Week 16, 02030"></a><a class="c" data-d="Week 17, 02030"></a><a class="c" data-d="Week 18, 02030"></a><a class="c" data-d="Week 19, 02030"></a><a class="c" data-d="Week 20, 02030"></a><a class="c" data-d="Week 21, 02030"></a><a class="c" data-d="Week 22, 02030"></a><a class="c" data-d="Week 23, 02030"></a><a class="c" data-d="Week 24, 02030"></a><a class="c" data-d="Week 25, 02030"></a><a class="c" data-d="Week 26, 02030"></a><a class="c" data-d="Week 27, 02030"></a><a class="c" data-d="Week 28, 02030"></a><a class="c" data-d="Week 29, 02030"></a><a class="c" data-d="Week 30, 02030"></a><a class="c" data-d="Week 31, 02030"></a><a class="c" data-d="Week 32, 02030"></a><a class="c" data-d="Week 33, 02030"></a><a class="c" data-d="Week 34, 02030"></a><a class="c" data-d="Week 35, 02030"></a><a class="c" data-d="Week 36, 02030"></a><a class="c" data-d="Week 37, 02030"></a><a class="c" data-d="Week 38, 02030"></a><a class="c" data-d="Week 39, 02030"></a><a class="c" data-d="Week 40, 02030"></a><a class="c" data-d="Week 41, 02030"></a><a class="c" data-d="Week 42, 02030"></a><a class="c" data-d="Week 43, 02030"></a><a class="c" data-d="Week 44, 02030"></a><a class="c" data-d="Week 45, 02030"></a><a class="c" data-d="Week 46, 02030"></a><a class="c" data-d="Week 47, 02030"></a><a class="c" data-d="Week 48, 02030"></a><a class="c" data-d="Week 49, 02030"></a><a class="c" data-d="Week 50, 02030"></a><a class="c" data-d="Week 51, 02030"></a><a class="c" data-d="Week 52, 02030"></a>
-    <a class="c" data-d="Week 1, 02031"></a><a class="c" data-d="Week 2, 02031"></a><a class="c" data-d="Week 3, 02031"></a><a class="c" data-d="Week 4, 02031"></a><a class="c" data-d="Week 5, 02031"></a><a class="c" data-d="Week 6, 02031"></a><a class="c" data-d="Week 7, 02031"></a><a class="c" data-d="Week 8, 02031"></a><a class="c" data-d="Week 9, 02031"></a><a class="c" data-d="Week 10, 02031"></a><a class="c" data-d="Week 11, 02031"></a><a class="c" data-d="Week 12, 02031"></a><a class="c" data-d="Week 13, 02031"></a><a class="c" data-d="Week 14, 02031"></a><a class="c" data-d="Week 15, 02031"></a><a class="c" data-d="Week 16, 02031"></a><a class="c" data-d="Week 17, 02031"></a><a class="c" data-d="Week 18, 02031"></a><a class="c" data-d="Week 19, 02031"></a><a class="c" data-d="Week 20, 02031"></a><a class="c" data-d="Week 21, 02031"></a><a class="c" data-d="Week 22, 02031"></a><a class="c" data-d="Week 23, 02031"></a><a class="c" data-d="Week 24, 02031"></a><a class="c" data-d="Week 25, 02031"></a><a class="c" data-d="Week 26, 02031"></a><a class="c" data-d="Week 27, 02031"></a><a class="c" data-d="Week 28, 02031"></a><a class="c" data-d="Week 29, 02031"></a><a class="c" data-d="Week 30, 02031"></a><a class="c" data-d="Week 31, 02031"></a><a class="c" data-d="Week 32, 02031"></a><a class="c" data-d="Week 33, 02031"></a><a class="c" data-d="Week 34, 02031"></a><a class="c" data-d="Week 35, 02031"></a><a class="c" data-d="Week 36, 02031"></a><a class="c" data-d="Week 37, 02031"></a><a class="c" data-d="Week 38, 02031"></a><a class="c" data-d="Week 39, 02031"></a><a class="c" data-d="Week 40, 02031"></a><a class="c" data-d="Week 41, 02031"></a><a class="c" data-d="Week 42, 02031"></a><a class="c" data-d="Week 43, 02031"></a><a class="c" data-d="Week 44, 02031"></a><a class="c" data-d="Week 45, 02031"></a><a class="c" data-d="Week 46, 02031"></a><a class="c" data-d="Week 47, 02031"></a><a class="c" data-d="Week 48, 02031"></a><a class="c" data-d="Week 49, 02031"></a><a class="c" data-d="Week 50, 02031"></a><a class="c" data-d="Week 51, 02031"></a><a class="c" data-d="Week 52, 02031"></a>
-    <a class="c" data-d="Week 1, 02032"></a><a class="c" data-d="Week 2, 02032"></a><a class="c" data-d="Week 3, 02032"></a><a class="c" data-d="Week 4, 02032"></a><a class="c" data-d="Week 5, 02032"></a><a class="c" data-d="Week 6, 02032"></a><a class="c" data-d="Week 7, 02032"></a><a class="c" data-d="Week 8, 02032"></a><a class="c" data-d="Week 9, 02032"></a><a class="c" data-d="Week 10, 02032"></a><a class="c" data-d="Week 11, 02032"></a><a class="c" data-d="Week 12, 02032"></a><a class="c" data-d="Week 13, 02032"></a><a class="c" data-d="Week 14, 02032"></a><a class="c" data-d="Week 15, 02032"></a><a class="c" data-d="Week 16, 02032"></a><a class="c" data-d="Week 17, 02032"></a><a class="c" data-d="Week 18, 02032"></a><a class="c" data-d="Week 19, 02032"></a><a class="c" data-d="Week 20, 02032"></a><a class="c" data-d="Week 21, 02032"></a><a class="c" data-d="Week 22, 02032"></a><a class="c" data-d="Week 23, 02032"></a><a class="c" data-d="Week 24, 02032"></a><a class="c" data-d="Week 25, 02032"></a><a class="c" data-d="Week 26, 02032"></a><a class="c" data-d="Week 27, 02032"></a><a class="c" data-d="Week 28, 02032"></a><a class="c" data-d="Week 29, 02032"></a><a class="c" data-d="Week 30, 02032"></a><a class="c" data-d="Week 31, 02032"></a><a class="c" data-d="Week 32, 02032"></a><a class="c" data-d="Week 33, 02032"></a><a class="c" data-d="Week 34, 02032"></a><a class="c" data-d="Week 35, 02032"></a><a class="c" data-d="Week 36, 02032"></a><a class="c" data-d="Week 37, 02032"></a><a class="c" data-d="Week 38, 02032"></a><a class="c" data-d="Week 39, 02032"></a><a class="c" data-d="Week 40, 02032"></a><a class="c" data-d="Week 41, 02032"></a><a class="c" data-d="Week 42, 02032"></a><a class="c" data-d="Week 43, 02032"></a><a class="c" data-d="Week 44, 02032"></a><a class="c" data-d="Week 45, 02032"></a><a class="c" data-d="Week 46, 02032"></a><a class="c" data-d="Week 47, 02032"></a><a class="c" data-d="Week 48, 02032"></a><a class="c" data-d="Week 49, 02032"></a><a class="c" data-d="Week 50, 02032"></a><a class="c" data-d="Week 51, 02032"></a><a class="c" data-d="Week 52, 02032"></a>
-    <a class="c" data-d="Week 1, 02033"></a><a class="c" data-d="Week 2, 02033"></a><a class="c" data-d="Week 3, 02033"></a><a class="c" data-d="Week 4, 02033"></a><a class="c" data-d="Week 5, 02033"></a><a class="c" data-d="Week 6, 02033"></a><a class="c" data-d="Week 7, 02033"></a><a class="c" data-d="Week 8, 02033"></a><a class="c" data-d="Week 9, 02033"></a><a class="c" data-d="Week 10, 02033"></a><a class="c" data-d="Week 11, 02033"></a><a class="c" data-d="Week 12, 02033"></a><a class="c" data-d="Week 13, 02033"></a><a class="c" data-d="Week 14, 02033"></a><a class="c" data-d="Week 15, 02033"></a><a class="c" data-d="Week 16, 02033"></a><a class="c" data-d="Week 17, 02033"></a><a class="c" data-d="Week 18, 02033"></a><a class="c" data-d="Week 19, 02033"></a><a class="c" data-d="Week 20, 02033"></a><a class="c" data-d="Week 21, 02033"></a><a class="c" data-d="Week 22, 02033"></a><a class="c" data-d="Week 23, 02033"></a><a class="c" data-d="Week 24, 02033"></a><a class="c" data-d="Week 25, 02033"></a><a class="c" data-d="Week 26, 02033"></a><a class="c" data-d="Week 27, 02033"></a><a class="c" data-d="Week 28, 02033"></a><a class="c" data-d="Week 29, 02033"></a><a class="c" data-d="Week 30, 02033"></a><a class="c" data-d="Week 31, 02033"></a><a class="c" data-d="Week 32, 02033"></a><a class="c" data-d="Week 33, 02033"></a><a class="c" data-d="Week 34, 02033"></a><a class="c" data-d="Week 35, 02033"></a><a class="c" data-d="Week 36, 02033"></a><a class="c" data-d="Week 37, 02033"></a><a class="c" data-d="Week 38, 02033"></a><a class="c" data-d="Week 39, 02033"></a><a class="c" data-d="Week 40, 02033"></a><a class="c" data-d="Week 41, 02033"></a><a class="c" data-d="Week 42, 02033"></a><a class="c" data-d="Week 43, 02033"></a><a class="c" data-d="Week 44, 02033"></a><a class="c" data-d="Week 45, 02033"></a><a class="c" data-d="Week 46, 02033"></a><a class="c" data-d="Week 47, 02033"></a><a class="c" data-d="Week 48, 02033"></a><a class="c" data-d="Week 49, 02033"></a><a class="c" data-d="Week 50, 02033"></a><a class="c" data-d="Week 51, 02033"></a><a class="c" data-d="Week 52, 02033"></a>
-    <a class="c" data-d="Week 1, 02034"></a><a class="c" data-d="Week 2, 02034"></a><a class="c" data-d="Week 3, 02034"></a><a class="c" data-d="Week 4, 02034"></a><a class="c" data-d="Week 5, 02034"></a><a class="c" data-d="Week 6, 02034"></a><a class="c" data-d="Week 7, 02034"></a><a class="c" data-d="Week 8, 02034"></a><a class="c" data-d="Week 9, 02034"></a><a class="c" data-d="Week 10, 02034"></a><a class="c" data-d="Week 11, 02034"></a><a class="c" data-d="Week 12, 02034"></a><a class="c" data-d="Week 13, 02034"></a><a class="c" data-d="Week 14, 02034"></a><a class="c" data-d="Week 15, 02034"></a><a class="c" data-d="Week 16, 02034"></a><a class="c" data-d="Week 17, 02034"></a><a class="c" data-d="Week 18, 02034"></a><a class="c" data-d="Week 19, 02034"></a><a class="c" data-d="Week 20, 02034"></a><a class="c" data-d="Week 21, 02034"></a><a class="c" data-d="Week 22, 02034"></a><a class="c" data-d="Week 23, 02034"></a><a class="c" data-d="Week 24, 02034"></a><a class="c" data-d="Week 25, 02034"></a><a class="c" data-d="Week 26, 02034"></a><a class="c" data-d="Week 27, 02034"></a><a class="c" data-d="Week 28, 02034"></a><a class="c" data-d="Week 29, 02034"></a><a class="c" data-d="Week 30, 02034"></a><a class="c" data-d="Week 31, 02034"></a><a class="c" data-d="Week 32, 02034"></a><a class="c" data-d="Week 33, 02034"></a><a class="c" data-d="Week 34, 02034"></a><a class="c" data-d="Week 35, 02034"></a><a class="c" data-d="Week 36, 02034"></a><a class="c" data-d="Week 37, 02034"></a><a class="c" data-d="Week 38, 02034"></a><a class="c" data-d="Week 39, 02034"></a><a class="c" data-d="Week 40, 02034"></a><a class="c" data-d="Week 41, 02034"></a><a class="c" data-d="Week 42, 02034"></a><a class="c" data-d="Week 43, 02034"></a><a class="c" data-d="Week 44, 02034"></a><a class="c" data-d="Week 45, 02034"></a><a class="c" data-d="Week 46, 02034"></a><a class="c n l" data-d="Week 47, 02034"></a><a class="c" data-d="Week 48, 02034"></a><a class="c" data-d="Week 49, 02034"></a><a class="c" data-d="Week 50, 02034"></a><a class="c" data-d="Week 51, 02034"></a><a class="c" data-d="Week 52, 02034"></a>
-    <a class="c" data-d="Week 1, 02035"></a><a class="c" data-d="Week 2, 02035"></a><a class="c" data-d="Week 3, 02035"></a><a class="c" data-d="Week 4, 02035"></a><a class="c" data-d="Week 5, 02035"></a><a class="c" data-d="Week 6, 02035"></a><a class="c" data-d="Week 7, 02035"></a><a class="c" data-d="Week 8, 02035"></a><a class="c" data-d="Week 9, 02035"></a><a class="c" data-d="Week 10, 02035"></a><a class="c" data-d="Week 11, 02035"></a><a class="c" data-d="Week 12, 02035"></a><a class="c" data-d="Week 13, 02035"></a><a class="c" data-d="Week 14, 02035"></a><a class="c" data-d="Week 15, 02035"></a><a class="c" data-d="Week 16, 02035"></a><a class="c" data-d="Week 17, 02035"></a><a class="c" data-d="Week 18, 02035"></a><a class="c" data-d="Week 19, 02035"></a><a class="c" data-d="Week 20, 02035"></a><a class="c" data-d="Week 21, 02035"></a><a class="c n" data-d="Week 22, 02035"></a><a class="c" data-d="Week 23, 02035"></a><a class="c" data-d="Week 24, 02035"></a><a class="c" data-d="Week 25, 02035"></a><a class="c" data-d="Week 26, 02035"></a><a class="c" data-d="Week 27, 02035"></a><a class="c" data-d="Week 28, 02035"></a><a class="c" data-d="Week 29, 02035"></a><a class="c" data-d="Week 30, 02035"></a><a class="c" data-d="Week 31, 02035"></a><a class="c" data-d="Week 32, 02035"></a><a class="c" data-d="Week 33, 02035"></a><a class="c" data-d="Week 34, 02035"></a><a class="c" data-d="Week 35, 02035"></a><a class="c" data-d="Week 36, 02035"></a><a class="c" data-d="Week 37, 02035"></a><a class="c" data-d="Week 38, 02035"></a><a class="c" data-d="Week 39, 02035"></a><a class="c" data-d="Week 40, 02035"></a><a class="c" data-d="Week 41, 02035"></a><a class="c" data-d="Week 42, 02035"></a><a class="c" data-d="Week 43, 02035"></a><a class="c" data-d="Week 44, 02035"></a><a class="c" data-d="Week 45, 02035"></a><a class="c" data-d="Week 46, 02035"></a><a class="c" data-d="Week 47, 02035"></a><a class="c" data-d="Week 48, 02035"></a><a class="c" data-d="Week 49, 02035"></a><a class="c" data-d="Week 50, 02035"></a><a class="c" data-d="Week 51, 02035"></a><a class="c" data-d="Week 52, 02035"></a>
-  </div>
+
+<div class="container" id="container">
+  <div class="axis-x" id="axisX"></div>
+  <div class="axis-y" id="axisY"></div>
+  <div class="grid"   id="grid"></div>
 </div>
+
 </div></div>
 
 <!-- Note modal -->
-<div class="lg-modal-bg" id="lgModalBg">
-  <div class="lg-modal">
-    <div class="lg-modal-head">
-      <span class="lg-modal-wk" id="lgModalWk"></span>
-      <button class="lg-modal-close" id="lgModalClose" aria-label="Close">×</button>
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-wk" id="modalWk"></span>
+      <button class="modal-close" id="modalClose" aria-label="Close">×</button>
     </div>
-    <label class="lg-modal-lbl" for="lgModalText">Note</label>
-    <textarea class="lg-modal-text" id="lgModalText" placeholder="What happened this week?"></textarea>
-    <label class="lg-modal-lbl" for="lgModalUrl">Link (optional)</label>
-    <input class="lg-modal-url" id="lgModalUrl" type="url" placeholder="https://...">
-    <div class="lg-modal-actions">
-      <button class="lg-btn-cancel" id="lgModalCancel">Cancel</button>
-      <button class="lg-btn-save" id="lgModalSave">Save note</button>
+    <label class="modal-lbl" for="modalText">Note</label>
+    <textarea class="modal-input" id="modalText" placeholder="What happened this week?"></textarea>
+    <label class="modal-lbl" for="modalUrl">Link (optional)</label>
+    <input  class="modal-input" id="modalUrl" type="url" placeholder="https://...">
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modalCancel">Cancel</button>
+      <button class="btn-save"   id="modalSave">Save note</button>
     </div>
   </div>
 </div>
 
 <script>
 (function () {
-  const STORE = 'lg-notes-v1';
-  const cv    = document.querySelector('.cv');
-  const gr    = document.querySelector('.gr');
+  'use strict';
 
-  // ── Lens overlay ───────────────────────────────────────────────
+  // ── Config ─────────────────────────────────────────────────────
+  const YEARS      = 10;
+  const WEEKS      = 52;
+  const START_YEAR = 2026;
+  const STORE      = 'lg-notes-v1';
+  const SCALE      = 6;
+
+  // Today's ISO week — marks the current cell with .is-today
+  function isoWeekYear(d) {
+    const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
+    const y   = tmp.getUTCFullYear();
+    const w   = Math.ceil(((tmp - new Date(Date.UTC(y, 0, 1))) / 86400000 + 1) / 7);
+    return { week: w, year: y };
+  }
+  const today = isoWeekYear(new Date());
+
+  // ── Build axis labels ───────────────────────────────────────────
+  const axisX = document.getElementById('axisX');
+  for (let w = 1; w <= WEEKS; w++) {
+    const span = document.createElement('span');
+    span.textContent = (w === 1 || w % 5 === 0 || w === WEEKS) ? w : '';
+    axisX.appendChild(span);
+  }
+
+  const axisY = document.getElementById('axisY');
+  for (let y = 0; y < YEARS; y++) {
+    const span = document.createElement('span');
+    span.textContent = '0' + (START_YEAR + y);
+    axisY.appendChild(span);
+  }
+
+  // ── Build grid cells ────────────────────────────────────────────
+  const grid = document.getElementById('grid');
+  for (let y = 0; y < YEARS; y++) {
+    const year = START_YEAR + y;
+    for (let w = 1; w <= WEEKS; w++) {
+      const a = document.createElement('a');
+      a.className  = 'c';
+      a.dataset.d  = `Week ${w}, 0${year}`;
+      a.dataset.w  = w;
+      a.dataset.y  = year;
+      if (w === today.week && year === today.year) a.classList.add('is-today');
+      grid.appendChild(a);
+    }
+  }
+
+  // ── localStorage helpers ────────────────────────────────────────
+  function loadNotes() {
+    try { return JSON.parse(localStorage.getItem(STORE)) || {}; }
+    catch { return {}; }
+  }
+  function saveNotes(n) { localStorage.setItem(STORE, JSON.stringify(n)); }
+
+  function applyNoteClasses(notes) {
+    document.querySelectorAll('.c').forEach(cell => {
+      const n = notes[cell.dataset.d];
+      cell.classList.toggle('has-note', !!n);
+      cell.classList.toggle('has-link', !!(n && n.url));
+    });
+  }
+
+  function updateCount(notes) {
+    const el = document.getElementById('noteCount');
+    if (el) el.childNodes[0].textContent = Object.keys(notes).length;
+  }
+
+  // ── Lens overlay ────────────────────────────────────────────────
+  const container = document.getElementById('container');
   const lens      = document.createElement('div');
-  lens.className  = 'lg-lens';
-  lens.innerHTML  = '<span class="lg-lens-title"></span><button class="lg-lens-add"></button>';
-  cv.appendChild(lens);
-  const lensTitle = lens.querySelector('.lg-lens-title');
-  const lensAdd   = lens.querySelector('.lg-lens-add');
+  lens.className  = 'lens';
+  lens.innerHTML  = '<span class="lens-title"></span><button class="lens-add"></button>';
+  container.appendChild(lens);
 
-  let prevKey    = null;
+  const lensTitle = lens.querySelector('.lens-title');
+  const lensAdd   = lens.querySelector('.lens-add');
+
+  let prevKey     = null;
   let modalIsOpen = false;
 
-  // RAF loop: poll CSS :hover (always on the native-size <a>, correct even
-  // when the ::before tile visually covers neighbouring rows).
-  // When a new cell is hovered, compute the actual visual bounds of the 6×
-  // magnified tile and size/position the lens div there directly.
+  // RAF loop: gr.querySelector('.c:hover') reads CSS hover state which
+  // always resolves to the native-size <a> element — not the scaled
+  // ::before tile — so hover detection is always accurate.
   function tick() {
     if (!modalIsOpen) {
-      const hov = gr.querySelector('.c:hover');
+      const hov = grid.querySelector('.c:hover');
       if (hov) {
         const key = hov.dataset.d;
         if (key !== prevKey) {
           prevKey = key;
           const notes  = loadNotes();
-          const cvRect = cv.getBoundingClientRect();
-          const cr     = hov.getBoundingClientRect();
-          const scale  = 6;
-          const w      = cr.width  * scale;
-          const h      = cr.height * scale;
-          // bottom-aligned (grows upward, matching transform-origin: 50% 100%)
-          const left   = (cr.left - cvRect.left) + cr.width  / 2 - w / 2;
-          const top    = (cr.top  - cvRect.top)  + cr.height - h;
-          lens.style.left   = left + 'px';
-          lens.style.top    = top  + 'px';
-          lens.style.width  = w    + 'px';
-          lens.style.height = h    + 'px';
+          const cRect  = container.getBoundingClientRect();
+          const hRect  = hov.getBoundingClientRect();
+          const w = hRect.width  * SCALE;
+          const h = hRect.height * SCALE;
+          lens.style.left   = ((hRect.left - cRect.left) + hRect.width  / 2 - w / 2) + 'px';
+          lens.style.top    = ((hRect.top  - cRect.top)  + hRect.height - h)          + 'px';
+          lens.style.width  = w + 'px';
+          lens.style.height = h + 'px';
           lensTitle.textContent = key;
           lensAdd.textContent   = notes[key] ? 'edit note' : '+ add a note';
           lensAdd.dataset.key   = key;
-          lens.classList.add('visible');
+          lens.classList.add('on');
         }
       } else if (prevKey !== null) {
-        lens.classList.remove('visible');
+        lens.classList.remove('on');
         prevKey = null;
       }
     }
@@ -374,14 +511,14 @@ html, body { margin: 0; padding: 0; background: #101517; }
   }
   requestAnimationFrame(tick);
 
-  // ── Modal ──────────────────────────────────────────────────────
-  const modalBg     = document.getElementById('lgModalBg');
-  const modalWk     = document.getElementById('lgModalWk');
-  const modalText   = document.getElementById('lgModalText');
-  const modalUrl    = document.getElementById('lgModalUrl');
-  const modalClose  = document.getElementById('lgModalClose');
-  const modalCancel = document.getElementById('lgModalCancel');
-  const modalSave   = document.getElementById('lgModalSave');
+  // ── Modal ───────────────────────────────────────────────────────
+  const modalBg     = document.getElementById('modalBg');
+  const modalWk     = document.getElementById('modalWk');
+  const modalText   = document.getElementById('modalText');
+  const modalUrl    = document.getElementById('modalUrl');
+  const modalClose  = document.getElementById('modalClose');
+  const modalCancel = document.getElementById('modalCancel');
+  const modalSave   = document.getElementById('modalSave');
   let   modalKey    = null;
 
   function openModal(key) {
@@ -392,7 +529,7 @@ html, body { margin: 0; padding: 0; background: #101517; }
     modalText.value     = existing.text || '';
     modalUrl.value      = existing.url  || '';
     modalIsOpen = true;
-    lens.classList.remove('visible');
+    lens.classList.remove('on');
     prevKey = null;
     modalBg.classList.add('open');
     setTimeout(() => modalText.focus(), 50);
@@ -406,54 +543,25 @@ html, body { margin: 0; padding: 0; background: #101517; }
 
   function saveNote() {
     if (!modalKey) return;
-    const text = modalText.value.trim();
-    const url  = modalUrl.value.trim();
+    const text  = modalText.value.trim();
+    const url   = modalUrl.value.trim();
     const notes = loadNotes();
-
-    if (text || url) {
-      notes[modalKey] = { text, url };
-    } else {
-      delete notes[modalKey];
-    }
+    if (text || url) { notes[modalKey] = { text, url }; }
+    else             { delete notes[modalKey]; }
     saveNotes(notes);
     applyNoteClasses(notes);
     updateCount(notes);
     closeModal();
   }
 
-  lensAdd.addEventListener('click', () => {
-    if (lensAdd.dataset.key) openModal(lensAdd.dataset.key);
-  });
+  lensAdd.addEventListener('click',   () => { if (lensAdd.dataset.key) openModal(lensAdd.dataset.key); });
   modalClose.addEventListener('click',  closeModal);
   modalCancel.addEventListener('click', closeModal);
   modalSave.addEventListener('click',   saveNote);
   modalBg.addEventListener('click', e => { if (e.target === modalBg) closeModal(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  // ── localStorage helpers ───────────────────────────────────────
-  function loadNotes() {
-    try { return JSON.parse(localStorage.getItem(STORE)) || {}; }
-    catch { return {}; }
-  }
-  function saveNotes(notes) {
-    localStorage.setItem(STORE, JSON.stringify(notes));
-  }
-
-  function applyNoteClasses(notes) {
-    document.querySelectorAll('.c').forEach(cell => {
-      const n = notes[cell.dataset.d];
-      cell.classList.toggle('n',   !!n);
-      cell.classList.toggle('l',   !!(n && n.url));
-    });
-  }
-
-  function updateCount(notes) {
-    const count = Object.keys(notes).length;
-    const el    = document.getElementById('noteCount');
-    if (el) el.childNodes[0].textContent = count;
-  }
-
-  // ── Init: restore saved notes ──────────────────────────────────
+  // ── Init ────────────────────────────────────────────────────────
   const notes = loadNotes();
   applyNoteClasses(notes);
   updateCount(notes);
