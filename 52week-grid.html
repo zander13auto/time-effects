@@ -313,10 +313,9 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   <div class="meta-item">
     <span class="k" id="calLabel">Calendar <span style="opacity:.45">|</span> <span id="calWpLabel" style="font-weight:400;letter-spacing:.01em">WordPress Blog data</span></span>
     <div class="cal-btns">
-      <button class="cal-btn" id="importBtn" data-tip="Accepts .ics (iCalendar) · .csv (Google Cal, Outlook)">↑ Import</button>
-      <button class="cal-btn" id="aiImportBtn" data-tip="Copy an AI prompt to convert any data into an importable CSV">AI Import</button>
       <button class="cal-btn" id="wpBlogBtn" data-tip="Fetch posts from a public WordPress blog">WP Blog</button>
       <button class="cal-btn" id="dayOneBtn" data-tip="Import Day One journal export (.txt)">Day One</button>
+      <button class="cal-btn" id="importBtn" data-tip="Accepts .ics (iCalendar) · .csv (Google Cal, Outlook)">↑ Import</button>
       <button class="cal-btn" id="exportBtn" data-tip="Download CSV file (compatible with Google/Microsoft)">↓ Export</button>
     </div>
     <input type="file" id="importFile" accept=".csv,.ics,text/calendar" style="display:none">
@@ -459,19 +458,13 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <div style="display:flex;flex-direction:column;flex:1;min-height:0">
       <div class="modal-body">
         <p style="font-size:13px;color:rgba(232,192,140,.6);margin:0 0 14px;line-height:1.6">Enter a public WordPress blog URL to import posts as grid entries.</p>
+        <p id="wpBlogCurrent" style="display:none;font-size:12px;color:rgba(232,192,140,.5);margin:0 0 10px;line-height:1.5;padding:7px 9px;background:rgba(232,192,140,.07);border-radius:4px;border-left:2px solid rgba(232,192,140,.3)"></p>
         <input type="url" id="wpBlogUrl" placeholder="https://example.wordpress.com"
           style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1px solid rgba(232,192,140,.25);border-radius:4px;color:#dcdcde;font-family:var(--ss);font-size:13px;padding:8px 10px;outline:none">
         <p id="wpBlogStatus" style="font-size:12px;color:rgba(232,192,140,.55);margin:10px 0 0;min-height:16px;line-height:1.5"></p>
-        <div id="wpBlogProgressWrap" style="display:none;margin-top:10px">
-          <div style="height:4px;background:rgba(232,192,140,.12);border-radius:2px;overflow:hidden">
-            <div id="wpBlogProgressBar" style="height:100%;width:0%;background:var(--ac);border-radius:2px;transition:width .3s ease"></div>
-          </div>
-          <p style="font-size:11px;color:rgba(232,192,140,.35);margin:8px 0 0;line-height:1.5">Blogs with thousands of posts may take a few minutes — fetching 100 posts per request.</p>
-        </div>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="wpBlogCancel">Cancel</button>
-        <button class="btn-delete" id="wpBlogClear" style="margin-right:auto">Clear blog</button>
         <button class="btn-save"   id="wpBlogFetch">Fetch Posts</button>
       </div>
     </div>
@@ -492,40 +485,6 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       <div class="modal-actions">
         <button class="btn-cancel" id="resetCancel">Cancel</button>
         <button class="btn-delete" id="resetConfirm">Clear all entries</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- AI Import prompt modal -->
-<div class="modal-bg" id="aiImportBg">
-  <div class="modal" style="max-width:540px">
-    <div class="modal-head">
-      <span class="modal-wk" style="font-size:15px;font-weight:600;color:#dcdcde">AI Import prompt</span>
-      <button class="modal-close" id="aiImportClose" aria-label="Close">×</button>
-    </div>
-    <div style="display:flex;flex-direction:column;flex:1;min-height:0">
-      <div class="modal-body">
-        <p style="font-size:13px;color:rgba(220,220,222,.65);margin:0 0 12px;line-height:1.6">Paste this prompt into any AI assistant along with your events to get a CSV you can import here.</p>
-        <pre id="aiImportPrompt" style="font-family:var(--ss);font-size:12px;line-height:1.7;color:#dcdcde;background:rgba(0,0,0,.35);border:1px solid var(--bd);border-radius:6px;padding:14px 16px;margin:0;white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:52vh">I have a list of events/entries below. Please convert them to a CSV file I can import into a weekly life grid.
-
-The CSV must have exactly these two columns (header row required):
-  Subject, Start Date
-
-Rules:
-- Subject: a short plain-text title for the event (no quotes unless the title contains a comma)
-- Start Date: the date the event starts, formatted MM/DD/YYYY
-- One row per event
-- If an event spans multiple days, output only the start date
-- If a date is ambiguous or missing, make your best guess and note it in parentheses after the title
-- Do not include any explanation — output only the CSV
-
-Here is my data:
-[PASTE YOUR DATA HERE]</pre>
-      </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" id="aiImportDone">Done</button>
-        <button class="btn-save"   id="aiImportCopy">Copy prompt</button>
       </div>
     </div>
   </div>
@@ -585,7 +544,7 @@ Here is my data:
   var today = isoWeek(new Date());
 
   /* ── Eyebrow (version + dynamic span) ───────────────────────── */
-  var EYEBROW_VER = 'Prototype 109dca91 2026-06-08·UTC17:51';
+  var EYEBROW_VER = 'Prototype c6091dc9 2026-06-07·UTC20:23';
   function updateEyebrow() {
     var el = document.getElementById('eyebrow');
     if (el) el.textContent = EYEBROW_VER + ' · ' + YEARS + ' years × ' + WEEKS + ' weeks';
@@ -1216,10 +1175,18 @@ Here is my data:
   var wpBlogUrlEl  = document.getElementById('wpBlogUrl');
 
   function openWpBlogModal() {
-    wpBlogUrlEl.value = '';
+    var stored = localStorage.getItem(WP_URL_KEY);
+    var currentEl = document.getElementById('wpBlogCurrent');
+    if (stored) {
+      currentEl.style.display = 'block';
+      currentEl.textContent = 'Currently loaded: ' + stored;
+      wpBlogUrlEl.value = stored;
+    } else {
+      currentEl.style.display = 'none';
+      currentEl.textContent = '';
+      wpBlogUrlEl.value = '';
+    }
     wpBlogStatus.textContent = '';
-    wpProgressWrap.style.display = 'none';
-    wpProgressBar.style.width = '0%';
     wpBlogBg.classList.add('open');
     setTimeout(function () { wpBlogUrlEl.focus(); }, 50);
   }
@@ -1244,16 +1211,6 @@ Here is my data:
     return { groups: groups, wpLinks: wpLinks };
   }
 
-  var wpProgressWrap = document.getElementById('wpBlogProgressWrap');
-  var wpProgressBar  = document.getElementById('wpBlogProgressBar');
-
-  function wpSetProgress(page, totalPages) {
-    if (totalPages <= 1) { wpProgressWrap.style.display = 'none'; return; }
-    wpProgressWrap.style.display = 'block';
-    var pct = Math.round((page / totalPages) * 100);
-    wpProgressBar.style.width = pct + '%';
-  }
-
   function wpFetchPage(baseUrl, page, accPosts, totalPages, onDone) {
     var xhr = new XMLHttpRequest();
     var url = baseUrl + '/wp-json/wp/v2/posts?per_page=100&page=' + page +
@@ -1262,35 +1219,27 @@ Here is my data:
     xhr.onload = function () {
       if (xhr.status !== 200) {
         wpBlogStatus.textContent = 'Error fetching page ' + page + ' (status ' + xhr.status + ').';
-        wpProgressWrap.style.display = 'none';
         return;
       }
       var batch;
       try { batch = JSON.parse(xhr.responseText); } catch (e) {
-        wpBlogStatus.textContent = 'Could not parse response from blog.';
-        wpProgressWrap.style.display = 'none';
-        return;
+        wpBlogStatus.textContent = 'Could not parse response from blog.'; return;
       }
       var allPosts = accPosts.concat(batch);
       if (page === 1) {
         totalPages = parseInt(xhr.getResponseHeader('X-WP-TotalPages'), 10) || 1;
         var total  = parseInt(xhr.getResponseHeader('X-WP-Total'), 10) || batch.length;
         wpBlogStatus.textContent = 'Found ' + total + ' post' + (total === 1 ? '' : 's') +
-          (totalPages > 1 ? ' — fetching all ' + totalPages + ' pages…' : '…');
+          (totalPages > 1 ? ' — fetching all pages…' : '…');
       }
-      wpSetProgress(page, totalPages);
-      wpBlogStatus.textContent = 'Page ' + page + ' of ' + totalPages + ' fetched (' + allPosts.length + ' posts)…';
       if (page < totalPages) {
         wpFetchPage(baseUrl, page + 1, allPosts, totalPages, onDone);
       } else {
-        wpProgressBar.style.width = '100%';
-        setTimeout(function () { wpProgressWrap.style.display = 'none'; }, 400);
         onDone(allPosts);
       }
     };
     xhr.onerror = function () {
       wpBlogStatus.textContent = 'Network error — check the URL and try again.';
-      wpProgressWrap.style.display = 'none';
     };
     xhr.send();
   }
@@ -1347,21 +1296,6 @@ Here is my data:
       openImportModal(result.groups, posts.length, 'append');
     });
   }
-
-  document.getElementById('wpBlogClear').addEventListener('click', function () {
-    if (!confirm('Remove all WordPress blog entries from the grid?')) return;
-    var notes = loadNotes();
-    var removed = 0;
-    for (var key in notes) {
-      if (notes[key] && notes[key].links) { delete notes[key]; removed++; }
-    }
-    localStorage.removeItem(WP_URL_KEY);
-    saveNotes(notes);
-    refreshCells(notes);
-    updateCalLabel();
-    closeWpBlogModal();
-    alert('Cleared ' + removed + ' week' + (removed === 1 ? '' : 's') + ' of blog entries.');
-  });
 
   document.getElementById('wpBlogFetch').addEventListener('click', function () {
     var raw = wpBlogUrlEl.value.trim().replace(/\/$/, '');
@@ -1618,34 +1552,6 @@ Here is my data:
   });
 
   /* ── Reset notes modal ────────────────────────────────────────── */
-  /* ── AI Import prompt modal ─────────────────────────────────── */
-  var aiImportBg = document.getElementById('aiImportBg');
-  function openAiImport()  { aiImportBg.classList.add('open'); }
-  function closeAiImport() { aiImportBg.classList.remove('open'); }
-
-  document.getElementById('aiImportBtn').addEventListener('click', openAiImport);
-  document.getElementById('aiImportClose').addEventListener('click', closeAiImport);
-  document.getElementById('aiImportDone').addEventListener('click', closeAiImport);
-  aiImportBg.addEventListener('click', function (e) { if (e.target === aiImportBg) closeAiImport(); });
-  document.getElementById('aiImportCopy').addEventListener('click', function () {
-    var prompt = document.getElementById('aiImportPrompt').textContent;
-    var btn = document.getElementById('aiImportCopy');
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(prompt).then(function () {
-        btn.textContent = 'Copied!';
-        setTimeout(function () { btn.textContent = 'Copy prompt'; }, 2000);
-      });
-    } else {
-      var ta = document.createElement('textarea');
-      ta.value = prompt;
-      ta.style.position = 'fixed'; ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); btn.textContent = 'Copied!'; setTimeout(function () { btn.textContent = 'Copy prompt'; }, 2000); } catch (e) {}
-      document.body.removeChild(ta);
-    }
-  });
-
   var resetBg = document.getElementById('resetBg');
   function openReset()  { resetBg.classList.add('open'); }
   function closeReset() { resetBg.classList.remove('open'); }
