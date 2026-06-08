@@ -7,8 +7,8 @@ on:
 jobs:
   stamp:
     runs-on: ubuntu-latest
-    # Skip if the push was made by this action itself
-    if: "!contains(github.event.head_commit.message, '[skip-stamp]')"
+    # Skip commits made by the Action itself to prevent infinite loops
+    if: github.actor != 'github-actions[bot]'
     permissions:
       contents: write
 
@@ -27,10 +27,9 @@ jobs:
         env:
           VER: ${{ steps.ver.outputs.str }}
         run: |
-          python3 << 'EOF'
+          python3 << 'PYEOF'
           import re, glob, os
           ver = os.environ['VER']
-          # Match the version pattern wherever it appears in HTML/JS
           pat = re.compile(
               r'Prototype\s+[a-f0-9]{8}\s+\d{4}-\d{2}-\d{2}\xb7UTC\d{2}:\d{2}'
           )
@@ -42,7 +41,7 @@ jobs:
                   print(f'Stamped {fpath}')
               else:
                   print(f'No match in {fpath}')
-          EOF
+          PYEOF
 
       - name: Commit if changed
         run: |
@@ -52,6 +51,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "Nothing to stamp."
           else
-            git commit -m "[skip-stamp] version stamp ${GITHUB_SHA:0:8} $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git commit -m "chore: version stamp ${GITHUB_SHA:0:8} $(date -u '+%Y-%m-%d %H:%M UTC')"
             git push
           fi
