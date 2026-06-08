@@ -462,6 +462,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         <input type="url" id="wpBlogUrl" placeholder="https://example.wordpress.com"
           style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1px solid rgba(232,192,140,.25);border-radius:4px;color:#dcdcde;font-family:var(--ss);font-size:13px;padding:8px 10px;outline:none">
         <p id="wpBlogStatus" style="font-size:12px;color:rgba(232,192,140,.55);margin:10px 0 0;min-height:16px;line-height:1.5"></p>
+        <div id="wpBlogProgressWrap" style="display:none;margin-top:10px">
+          <div style="height:4px;background:rgba(232,192,140,.12);border-radius:2px;overflow:hidden">
+            <div id="wpBlogProgressBar" style="height:100%;width:0%;background:var(--ac);border-radius:2px;transition:width .3s ease"></div>
+          </div>
+          <p style="font-size:11px;color:rgba(232,192,140,.35);margin:8px 0 0;line-height:1.5">Blogs with thousands of posts may take a few minutes — fetching 100 posts per request.</p>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="wpBlogCancel">Cancel</button>
@@ -1212,6 +1218,8 @@ Here is my data:
   function openWpBlogModal() {
     wpBlogUrlEl.value = '';
     wpBlogStatus.textContent = '';
+    wpProgressWrap.style.display = 'none';
+    wpProgressBar.style.width = '0%';
     wpBlogBg.classList.add('open');
     setTimeout(function () { wpBlogUrlEl.focus(); }, 50);
   }
@@ -1236,6 +1244,16 @@ Here is my data:
     return { groups: groups, wpLinks: wpLinks };
   }
 
+  var wpProgressWrap = document.getElementById('wpBlogProgressWrap');
+  var wpProgressBar  = document.getElementById('wpBlogProgressBar');
+
+  function wpSetProgress(page, totalPages) {
+    if (totalPages <= 1) { wpProgressWrap.style.display = 'none'; return; }
+    wpProgressWrap.style.display = 'block';
+    var pct = Math.round((page / totalPages) * 100);
+    wpProgressBar.style.width = pct + '%';
+  }
+
   function wpFetchPage(baseUrl, page, accPosts, totalPages, onDone) {
     var xhr = new XMLHttpRequest();
     var url = baseUrl + '/wp-json/wp/v2/posts?per_page=100&page=' + page +
@@ -1244,27 +1262,35 @@ Here is my data:
     xhr.onload = function () {
       if (xhr.status !== 200) {
         wpBlogStatus.textContent = 'Error fetching page ' + page + ' (status ' + xhr.status + ').';
+        wpProgressWrap.style.display = 'none';
         return;
       }
       var batch;
       try { batch = JSON.parse(xhr.responseText); } catch (e) {
-        wpBlogStatus.textContent = 'Could not parse response from blog.'; return;
+        wpBlogStatus.textContent = 'Could not parse response from blog.';
+        wpProgressWrap.style.display = 'none';
+        return;
       }
       var allPosts = accPosts.concat(batch);
       if (page === 1) {
         totalPages = parseInt(xhr.getResponseHeader('X-WP-TotalPages'), 10) || 1;
         var total  = parseInt(xhr.getResponseHeader('X-WP-Total'), 10) || batch.length;
         wpBlogStatus.textContent = 'Found ' + total + ' post' + (total === 1 ? '' : 's') +
-          (totalPages > 1 ? ' — fetching all pages…' : '…');
+          (totalPages > 1 ? ' — fetching all ' + totalPages + ' pages…' : '…');
       }
+      wpSetProgress(page, totalPages);
+      wpBlogStatus.textContent = 'Page ' + page + ' of ' + totalPages + ' fetched (' + allPosts.length + ' posts)…';
       if (page < totalPages) {
         wpFetchPage(baseUrl, page + 1, allPosts, totalPages, onDone);
       } else {
+        wpProgressBar.style.width = '100%';
+        setTimeout(function () { wpProgressWrap.style.display = 'none'; }, 400);
         onDone(allPosts);
       }
     };
     xhr.onerror = function () {
       wpBlogStatus.textContent = 'Network error — check the URL and try again.';
+      wpProgressWrap.style.display = 'none';
     };
     xhr.send();
   }
