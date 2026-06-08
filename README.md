@@ -115,6 +115,20 @@ Day One app: [dayoneapp.com](https://dayoneapp.com)
 
 ---
 
+#### WordPress blog (WP REST API)
+
+The **WP Blog** button fetches posts from any self-hosted WordPress site or WordPress.com blog via the WP REST API.
+
+**How to use:**
+1. Click the **WP Blog** button.
+2. Enter the base URL of the WordPress site (e.g. `https://example.com`).
+3. Click **Fetch** — the grid imports all published posts, grouping titles by ISO week.
+
+**Notes:**
+- The site must have the WP REST API enabled (enabled by default on WordPress 4.7+).
+- If a blog is already loaded, the modal shows the currently loaded URL so you know what you are replacing or refreshing.
+- Tested with blogs up to approximately 9,000 posts.
+
 ### Export format
 
 The **↓ Export** button downloads `life-grid-entries.csv` — a standard Google Calendar–compatible CSV with one all-day event per saved entry spanning the full Monday–Sunday of that ISO week.
