@@ -313,11 +313,11 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   <div class="meta-item">
     <span class="k" id="calLabel">Calendar <span style="opacity:.45">|</span> <span id="calWpLabel" style="font-weight:400;letter-spacing:.01em">WordPress Blog data</span></span>
     <div class="cal-btns">
-      <button class="cal-btn" id="wpBlogBtn" data-tip="Fetch posts from a public WordPress blog">WP Blog</button>
-      <button class="cal-btn" id="dayOneBtn" data-tip="Import Day One journal export (.txt)">Day One</button>
       <button class="cal-btn" id="importBtn" data-tip="Accepts .ics (iCalendar) · .csv (Google Cal, Outlook)">↑ Import</button>
       <button class="cal-btn" id="exportBtn" data-tip="Download CSV file (compatible with Google/Microsoft)">↓ Export</button>
       <button class="cal-btn" id="aiImportBtn" data-tip="Copy an AI prompt to convert any data into an importable CSV">AI Import</button>
+      <button class="cal-btn" id="wpBlogBtn" data-tip="Fetch posts from a public WordPress blog">WP Blog</button>
+      <button class="cal-btn" id="dayOneBtn" data-tip="Import Day One journal export (.txt)">Day One</button>
     </div>
     <input type="file" id="importFile" accept=".csv,.ics,text/calendar" style="display:none">
     <input type="file" id="dayOneFile" accept=".txt,text/plain" style="display:none">
@@ -465,6 +465,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="wpBlogCancel">Cancel</button>
+        <button class="btn-delete" id="wpBlogClear" style="margin-right:auto">Clear blog</button>
         <button class="btn-save"   id="wpBlogFetch">Fetch Posts</button>
       </div>
     </div>
@@ -1320,6 +1321,21 @@ Here is my data:
       openImportModal(result.groups, posts.length, 'append');
     });
   }
+
+  document.getElementById('wpBlogClear').addEventListener('click', function () {
+    if (!confirm('Remove all WordPress blog entries from the grid?')) return;
+    var notes = loadNotes();
+    var removed = 0;
+    for (var key in notes) {
+      if (notes[key] && notes[key].links) { delete notes[key]; removed++; }
+    }
+    localStorage.removeItem(WP_URL_KEY);
+    saveNotes(notes);
+    refreshCells(notes);
+    updateCalLabel();
+    closeWpBlogModal();
+    alert('Cleared ' + removed + ' week' + (removed === 1 ? '' : 's') + ' of blog entries.');
+  });
 
   document.getElementById('wpBlogFetch').addEventListener('click', function () {
     var raw = wpBlogUrlEl.value.trim().replace(/\/$/, '');
