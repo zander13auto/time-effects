@@ -465,6 +465,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="wpBlogCancel">Cancel</button>
+        <button class="btn-cancel" id="wpBlogRemove" style="display:none;margin-right:auto;color:rgba(232,100,100,.75);border-color:rgba(232,100,100,.3)">Remove Blog</button>
         <button class="btn-save"   id="wpBlogFetch">Fetch Posts</button>
       </div>
     </div>
@@ -1177,14 +1178,17 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   function openWpBlogModal() {
     var stored = localStorage.getItem(WP_URL_KEY);
     var currentEl = document.getElementById('wpBlogCurrent');
+    var removeBtn = document.getElementById('wpBlogRemove');
     if (stored) {
       currentEl.style.display = 'block';
       currentEl.textContent = 'Currently loaded: ' + stored;
       wpBlogUrlEl.value = stored;
+      removeBtn.style.display = 'inline-flex';
     } else {
       currentEl.style.display = 'none';
       currentEl.textContent = '';
       wpBlogUrlEl.value = '';
+      removeBtn.style.display = 'none';
     }
     wpBlogStatus.textContent = '';
     wpBlogBg.classList.add('open');
@@ -1247,6 +1251,11 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   document.getElementById('wpBlogBtn').addEventListener('click', openWpBlogModal);
   document.getElementById('wpBlogClose').addEventListener('click', closeWpBlogModal);
   document.getElementById('wpBlogCancel').addEventListener('click', closeWpBlogModal);
+  document.getElementById('wpBlogRemove').addEventListener('click', function () {
+    localStorage.removeItem(WP_URL_KEY);
+    updateCalLabel();
+    closeWpBlogModal();
+  });
   wpBlogBg.addEventListener('click', function (e) { if (e.target === wpBlogBg) closeWpBlogModal(); });
 
   var WP_URL_KEY = 'lg-wp-url-v1';
