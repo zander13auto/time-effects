@@ -463,6 +463,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         <input type="url" id="wpBlogUrl" placeholder="https://example.wordpress.com"
           style="width:100%;box-sizing:border-box;background:rgba(255,255,255,.07);border:1px solid rgba(232,192,140,.25);border-radius:4px;color:#dcdcde;font-family:var(--ss);font-size:13px;padding:8px 10px;outline:none">
         <p id="wpBlogStatus" style="font-size:12px;color:rgba(232,192,140,.55);margin:10px 0 0;min-height:16px;line-height:1.5"></p>
+        <div id="wpBlogProgressWrap" style="display:none;margin-top:8px">
+          <div style="height:3px;background:rgba(232,192,140,.12);border-radius:2px;overflow:hidden">
+            <div id="wpBlogProgressBar" style="height:100%;width:0%;background:rgba(232,192,140,.55);border-radius:2px;transition:width .2s ease"></div>
+          </div>
+          <p id="wpBlogProgressLabel" style="font-size:11px;color:rgba(232,192,140,.4);margin:4px 0 0;line-height:1.4"></p>
+        </div>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="wpBlogCancel">Cancel</button>
@@ -501,11 +507,15 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     </div>
     <div style="display:flex;flex-direction:column;flex:1;min-height:0">
       <div class="modal-body">
-        <p style="font-size:15px;color:#dcdcde;margin:0;line-height:1.65">This will clear all entries, remove any loaded blog, and reset the grid to <strong style="color:rgba(232,192,140,.9)">100 years starting in 2000</strong>. This cannot be undone.</p>
+        <p style="font-size:15px;color:#dcdcde;margin:0 0 16px;line-height:1.65">This will clear all entries, remove any loaded blog, and reset the grid to <strong style="color:rgba(232,192,140,.9)">100 years starting in 2000</strong>. This cannot be undone.</p>
+        <label style="display:flex;align-items:center;gap:9px;cursor:pointer;font-size:13px;color:rgba(232,192,140,.65);line-height:1.5;user-select:none">
+          <input type="checkbox" id="defaultsCheck" style="width:15px;height:15px;accent-color:rgba(232,192,140,.7);cursor:pointer;flex-shrink:0">
+          I understand this will permanently delete all data
+        </label>
       </div>
       <div class="modal-actions">
         <button class="btn-cancel" id="defaultsCancel">Cancel</button>
-        <button class="btn-delete" id="defaultsConfirm">Reset to defaults</button>
+        <button class="btn-delete" id="defaultsConfirm" disabled style="opacity:.4;cursor:not-allowed">Reset to defaults</button>
       </div>
     </div>
   </div>
@@ -1216,6 +1226,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
   }
   function closeWpBlogModal() {
     wpBlogBg.classList.remove('open');
+    var pw = document.getElementById('wpBlogProgressWrap');
+    var pb = document.getElementById('wpBlogProgressBar');
+    var pl = document.getElementById('wpBlogProgressLabel');
+    if (pw) { pw.style.display = 'none'; }
+    if (pb) { pb.style.width = '0%'; }
+    if (pl) { pl.textContent = ''; }
   }
 
   function wpPostsToGroups(posts) {
@@ -1255,6 +1271,17 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         var total  = parseInt(xhr.getResponseHeader('X-WP-Total'), 10) || batch.length;
         wpBlogStatus.textContent = 'Found ' + total + ' post' + (total === 1 ? '' : 's') +
           (totalPages > 1 ? ' — fetching all pages…' : '…');
+        if (totalPages > 1) {
+          var pw = document.getElementById('wpBlogProgressWrap');
+          if (pw) pw.style.display = 'block';
+        }
+      }
+      if (totalPages > 1) {
+        var pct = Math.round((page / totalPages) * 100);
+        var pb = document.getElementById('wpBlogProgressBar');
+        var pl = document.getElementById('wpBlogProgressLabel');
+        if (pb) pb.style.width = pct + '%';
+        if (pl) pl.textContent = 'Page ' + page + ' of ' + totalPages + ' (' + pct + '%)';
       }
       if (page < totalPages) {
         wpFetchPage(baseUrl, page + 1, allPosts, totalPages, onDone);
@@ -1601,8 +1628,21 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 
   /* ── Reset to defaults ───────────────────────────────────────── */
   var defaultsBg = document.getElementById('defaultsBg');
-  function openDefaults()  { defaultsBg.classList.add('open'); }
+
+  function openDefaults() {
+    var chk = document.getElementById('defaultsCheck');
+    var btn = document.getElementById('defaultsConfirm');
+    if (chk) chk.checked = false;
+    if (btn) { btn.disabled = true; btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed'; }
+    defaultsBg.classList.add('open');
+  }
   function closeDefaults() { defaultsBg.classList.remove('open'); }
+
+  document.getElementById('defaultsCheck').addEventListener('change', function () {
+    var btn = document.getElementById('defaultsConfirm');
+    if (this.checked) { btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer'; }
+    else              { btn.disabled = true;  btn.style.opacity = '.4'; btn.style.cursor = 'not-allowed'; }
+  });
 
   document.getElementById('defaultsBtn').addEventListener('click', openDefaults);
   document.getElementById('defaultsClose').addEventListener('click', closeDefaults);
