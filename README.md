@@ -43,17 +43,20 @@ An interactive grid showing every week of a configurable span (default: 100 year
 - **Fit to entries** — click "fit to entries" next to the Span edit button to automatically set the start year and year count to exactly cover the earliest and latest weeks that have entries.
 - **Per-week entries** — each cell stores a text note and an optional URL, persisted in `localStorage`.
 - **Google Calendar link** — the hover lens and entry modal both link directly to that week's view in Google Calendar.
-- **Import** — populate the grid from exported calendar files (see formats below).
-- **Export** — download all entries as a CSV file importable back into Google Calendar or Outlook.
-- **Reset** — clear all saved entries with a confirmation step.
+- **Data Import Options** — four import sources in the meta bar: **WP Blog** (WordPress REST API), **AI Import** (copy a prompt to convert any data to importable CSV), **Day One** (plain-text journal export), and **Calendar** (.ics or .csv from Google Calendar / Outlook).
+- **Export** — download all entries as a CSV (below the grid); compatible with Google Calendar and Outlook.
+- **Reset entries** — clear all saved entries with a confirmation step.
+- **Reset to defaults** — reset the grid to 100 years from 2000 and clear all data and blog info; requires a confirmation checkbox.
 
 ---
 
-## Calendar import / export formats
+## Import / export formats
 
 ### Import formats accepted
 
-The **↑ Import** button accepts two formats:
+All import options are accessible from the **Data Import Options** row in the meta bar above the grid.
+
+The **Calendar** button accepts two formats:
 
 #### iCalendar (.ics)
 
@@ -115,6 +118,14 @@ Day One app: [dayoneapp.com](https://dayoneapp.com)
 
 ---
 
+#### AI Import
+
+The **AI Import** button opens a modal containing a ready-made prompt you can paste into any AI assistant (Claude, ChatGPT, etc.) along with your data. The AI returns a CSV you can then import using the **Calendar** button.
+
+This works for any data with dates attached: reading logs, travel history, project timelines, Notion exports, Apple Notes lists, and so on.
+
+A **Copy prompt** button copies the prompt text to your clipboard in one click.
+
 #### WordPress blog (WP REST API)
 
 The **WP Blog** button fetches posts from any self-hosted WordPress site or WordPress.com blog via the WP REST API.
@@ -131,7 +142,7 @@ The **WP Blog** button fetches posts from any self-hosted WordPress site or Word
 
 ### Export format
 
-The **↓ Export** button downloads `life-grid-entries.csv` — a standard Google Calendar–compatible CSV with one all-day event per saved entry spanning the full Monday–Sunday of that ISO week.
+The **↓ Export** button (below the grid) downloads `life-grid-entries.csv` — a standard Google Calendar–compatible CSV with one all-day event per saved entry spanning the full Monday–Sunday of that ISO week.
 
 It can be imported directly into:
 - **Google Calendar** via Settings → Import & export → Import.
@@ -184,6 +195,6 @@ Here is my data:
 
 ---
 
-Paste your data after the last line and the AI will return a CSV you can save as a `.csv` file and import using the **↑ Import** button on the grid.
+Paste your data after the last line and the AI will return a CSV you can save as a `.csv` file and import using the **Calendar** button on the grid.
 
 **Works well for:** project milestone lists, reading logs, travel history, concert or event lists, work anniversaries, Notion database exports, Airtable exports, Apple Notes lists, and anything else with dates attached.
