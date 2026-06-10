@@ -176,10 +176,7 @@ If you have events in a format the grid can't import directly — a spreadsheet,
 ### Copy-paste prompt
 
 ```
-I have a list of events/entries below. Please convert them to a CSV file I can import into a weekly life grid.
-
-The CSV must have exactly these two columns (header row required):
-  Subject, Start Date
+I need to build a CSV file out of the data indicated below. Please convert that source to a CSV file I can import into a weekly life grid. The CSV must have exactly these two columns (header row required): Subject, Start Date
 
 Rules:
 - Subject: a short plain-text title for the event (no quotes unless the title contains a comma)
@@ -187,10 +184,11 @@ Rules:
 - One row per event
 - If an event spans multiple days, output only the start date
 - If a date is ambiguous or missing, make your best guess and note it in parentheses after the title
+- (optional) For any data points that only have a year please assign them to a random week in that year. For any data points that only have a year and month please assign them to a random week in that month.
 - Do not include any explanation — output only the CSV
 
 Here is my data:
-[PASTE YOUR DATA HERE]
+  - [Link to or copy of data source]
 ```
 
 ---
