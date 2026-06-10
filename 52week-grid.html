@@ -490,11 +490,16 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <div style="display:flex;flex-direction:column;flex:1;min-height:0">
       <div class="modal-body">
         <p style="font-size:13px;color:rgba(220,220,222,.65);margin:0 0 12px;line-height:1.6">Paste this prompt into any AI assistant along with your events to get a CSV you can import here.</p>
-        <pre id="aiImportPrompt" style="font-family:var(--ss);font-size:12px;line-height:1.7;color:#dcdcde;background:rgba(0,0,0,.35);border:1px solid var(--bd);border-radius:6px;padding:14px 16px;margin:0;white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:52vh">I need to build a CSV file out of the data indicated below. Please convert that source to a CSV file I can import into a weekly life grid. The CSV must have exactly these two columns (header row required): Subject, Start Date
+        <pre id="aiImportPrompt" style="font-family:var(--ss);font-size:12px;line-height:1.7;color:#dcdcde;background:rgba(0,0,0,.35);border:1px solid var(--bd);border-radius:6px;padding:14px 16px;margin:0;white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:52vh">I need to build a CSV file out of the data indicated below. Please convert that source to a CSV file I can import into a weekly life grid.
+
+Reference: https://github.com/zander13auto/time-effects/blob/main/README.md
+
+The CSV must have exactly these three columns (header row required): Subject, Start Date, URL
 
 Rules:
 - Subject: a short plain-text title for the event (no quotes unless the title contains a comma)
 - Start Date: the date the event starts, formatted MM/DD/YYYY
+- URL: a direct link to the source item (page, post, entry, etc.) — if no individual URL exists for an item, leave the field empty
 - One row per event
 - If an event spans multiple days, output only the start date
 - If a date is ambiguous or missing, make your best guess and note it in parentheses after the title
@@ -1406,7 +1411,7 @@ Here is my data:
   /* ── Import calendar CSV or ICS ───────────────────────────────── */
   document.getElementById('importBtn').addEventListener('click', function () {
     document.getElementById('importTitle').textContent = 'Import calendar';
-    importUrlMap = {};
+    importUrlMap = {}; importWpLinks = {};
     document.getElementById('importFile').click();
   });
 
@@ -1443,11 +1448,13 @@ Here is my data:
         if (lines.length < 2) { alert('No data found in CSV.'); return; }
         var headers    = parseCSVLine(lines[0]);
         var colSubject = -1, colStart = -1, colDesc = -1;
+        var colUrl = -1;
         for (var h = 0; h < headers.length; h++) {
           var hdr = headers[h].trim().toLowerCase();
           if (hdr === 'subject')     colSubject = h;
           if (hdr === 'start date')  colStart   = h;
           if (hdr === 'description') colDesc    = h;
+          if (hdr === 'url')         colUrl     = h;
         }
         if (colSubject < 0 || colStart < 0) {
           alert('CSV must have "Subject" and "Start Date" columns.\nSupported formats: Google Calendar CSV, Outlook CSV.');
@@ -1467,10 +1474,17 @@ Here is my data:
           if (!dt2 || isNaN(dt2.getTime())) continue;
           var iw2   = isoWeek(dt2);
           var key2  = 'Week ' + iw2.week + ', 0' + iw2.year;
-          var line2 = subject;
-          if (colDesc >= 0) { var d2 = truncDesc(fields[colDesc] || ''); if (d2) line2 += '\n' + d2; }
+          var rowUrl  = colUrl  >= 0 ? (fields[colUrl]  || '').trim() : '';
+          var rowDesc = colDesc >= 0 ? truncDesc(fields[colDesc] || '') : '';
           if (!groups[key2]) groups[key2] = [];
-          groups[key2].push(line2);
+          if (rowUrl) {
+            if (!importWpLinks[key2]) importWpLinks[key2] = [];
+            importWpLinks[key2].push({ title: subject, url: rowUrl, desc: rowDesc });
+          } else {
+            var line2 = subject;
+            if (rowDesc) line2 += '\n' + rowDesc;
+            groups[key2].push(line2);
+          }
           parsed++;
         }
         openImportModal(groups, parsed);
