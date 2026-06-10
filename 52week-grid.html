@@ -311,7 +311,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="v" id="entryCount">0<small>saved</small></span>
   </div>
   <div class="meta-item">
-    <span class="k" id="calLabel">Data Import Options <span style="opacity:.45">|</span> <span id="calWpLabel" style="font-weight:400;letter-spacing:.01em">WordPress Blog data</span></span>
+    <span class="k" id="calLabel">Data Import Options<span id="calWpLabelSep" style="opacity:.45;display:none"> |</span> <span id="calWpLabel" style="font-weight:400;letter-spacing:.01em"></span></span>
     <div class="cal-btns">
       <button class="cal-btn" id="wpBlogBtn" data-tip="Fetch posts from a public WordPress blog">WP Blog</button>
       <button class="cal-btn" id="aiImportBtn" data-tip="Copy an AI prompt to convert any data into an importable CSV">AI Import</button>
@@ -1362,8 +1362,12 @@ Here is my data:
       btn.addEventListener('click', function (e) { e.preventDefault(); runWpFetch(stored); });
       lbl.appendChild(link);
       lbl.appendChild(btn);
+      var sep = document.getElementById('calWpLabelSep');
+      if (sep) sep.style.display = 'inline';
     } else {
-      lbl.textContent = 'WordPress Blog data';
+      lbl.textContent = '';
+      var sep = document.getElementById('calWpLabelSep');
+      if (sep) sep.style.display = 'none';
     }
   }
 
