@@ -311,12 +311,12 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     <span class="v" id="entryCount">0<small>saved</small></span>
   </div>
   <div class="meta-item">
-    <span class="k" id="calLabel">Calendar <span style="opacity:.45">|</span> <span id="calWpLabel" style="font-weight:400;letter-spacing:.01em">WordPress Blog data</span></span>
+    <span class="k" id="calLabel">Data Import Options <span style="opacity:.45">|</span> <span id="calWpLabel" style="font-weight:400;letter-spacing:.01em">WordPress Blog data</span></span>
     <div class="cal-btns">
       <button class="cal-btn" id="wpBlogBtn" data-tip="Fetch posts from a public WordPress blog">WP Blog</button>
+      <button class="cal-btn" id="aiImportBtn" data-tip="Copy an AI prompt to convert any data into an importable CSV">AI Import</button>
       <button class="cal-btn" id="dayOneBtn" data-tip="Import Day One journal export (.txt)">Day One</button>
-      <button class="cal-btn" id="importBtn" data-tip="Accepts .ics (iCalendar) · .csv (Google Cal, Outlook)">↑ Import</button>
-      <button class="cal-btn" id="exportBtn" data-tip="Download CSV file (compatible with Google/Microsoft)">↓ Export</button>
+      <button class="cal-btn" id="importBtn" data-tip="Accepts .ics (iCalendar) · .csv (Google Cal, Outlook)">Calendar</button>
     </div>
     <input type="file" id="importFile" accept=".csv,.ics,text/calendar" style="display:none">
     <input type="file" id="dayOneFile" accept=".txt,text/plain" style="display:none">
@@ -336,6 +336,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
 <div class="grid-footer">
   <button class="reset-btn" id="resetBtn" style="display:none" title="Clear all saved entries">↺ Reset entries</button>
   <button class="reset-btn" id="defaultsBtn" title="Reset everything to defaults: 100 years from 2000, clear all data">⟳ Reset to defaults</button>
+  <button class="reset-btn" id="exportBtn" title="Download CSV file (compatible with Google/Microsoft)">↓ Export</button>
 </div>
 
 </div></div>
@@ -474,6 +475,40 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
         <button class="btn-cancel" id="wpBlogCancel">Cancel</button>
         <button class="btn-cancel" id="wpBlogRemove" style="display:none;margin-right:auto;color:rgba(232,100,100,.75);border-color:rgba(232,100,100,.3)">Remove Blog</button>
         <button class="btn-save"   id="wpBlogFetch">Fetch Posts</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Import prompt modal -->
+<div class="modal-bg" id="aiImportBg">
+  <div class="modal" style="max-width:540px">
+    <div class="modal-head">
+      <span class="modal-wk" style="font-size:15px;font-weight:600;color:#dcdcde">AI Import prompt</span>
+      <button class="modal-close" id="aiImportClose" aria-label="Close">×</button>
+    </div>
+    <div style="display:flex;flex-direction:column;flex:1;min-height:0">
+      <div class="modal-body">
+        <p style="font-size:13px;color:rgba(220,220,222,.65);margin:0 0 12px;line-height:1.6">Paste this prompt into any AI assistant along with your events to get a CSV you can import here.</p>
+        <pre id="aiImportPrompt" style="font-family:var(--ss);font-size:12px;line-height:1.7;color:#dcdcde;background:rgba(0,0,0,.35);border:1px solid var(--bd);border-radius:6px;padding:14px 16px;margin:0;white-space:pre-wrap;word-break:break-word;overflow:auto;max-height:52vh">I have a list of events/entries below. Please convert them to a CSV file I can import into a weekly life grid.
+
+The CSV must have exactly these two columns (header row required):
+  Subject, Start Date
+
+Rules:
+- Subject: a short plain-text title for the event (no quotes unless the title contains a comma)
+- Start Date: the date the event starts, formatted MM/DD/YYYY
+- One row per event
+- If an event spans multiple days, output only the start date
+- If a date is ambiguous or missing, make your best guess and note it in parentheses after the title
+- Do not include any explanation — output only the CSV
+
+Here is my data:
+[PASTE YOUR DATA HERE]</pre>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" id="aiImportDone">Done</button>
+        <button class="btn-save"   id="aiImportCopy">Copy prompt</button>
       </div>
     </div>
   </div>
@@ -988,7 +1023,7 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     if (hadNote) { showView(loadNotes()[modalKey] || {}); } else { closeModal(); }
   });
   modalBg.addEventListener('click', function (e) { if (e.target === modalBg) closeModal(); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeReset(); closeImportModal(); closeDefaults(); } });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeReset(); closeImportModal(); closeDefaults(); closeAiImport(); } });
 
   /* ── CSV utilities ────────────────────────────────────────────── */
   function parseCSVLine(line) {
@@ -1605,6 +1640,34 @@ input.modal-field    { font-size: 14px; margin-bottom: 4px; }
     applySearch();
     if (currentCell) updateLens(currentCell);
     closeModal();
+  });
+
+  /* ── AI Import prompt modal ─────────────────────────────────── */
+  var aiImportBg = document.getElementById('aiImportBg');
+  function openAiImport()  { aiImportBg.classList.add('open'); }
+  function closeAiImport() { aiImportBg.classList.remove('open'); }
+
+  document.getElementById('aiImportBtn').addEventListener('click', openAiImport);
+  document.getElementById('aiImportClose').addEventListener('click', closeAiImport);
+  document.getElementById('aiImportDone').addEventListener('click', closeAiImport);
+  aiImportBg.addEventListener('click', function (e) { if (e.target === aiImportBg) closeAiImport(); });
+  document.getElementById('aiImportCopy').addEventListener('click', function () {
+    var prompt = document.getElementById('aiImportPrompt').textContent;
+    var btn = document.getElementById('aiImportCopy');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(prompt).then(function () {
+        btn.textContent = 'Copied!';
+        setTimeout(function () { btn.textContent = 'Copy prompt'; }, 2000);
+      });
+    } else {
+      var ta = document.createElement('textarea');
+      ta.value = prompt;
+      ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); btn.textContent = 'Copied!'; setTimeout(function () { btn.textContent = 'Copy prompt'; }, 2000); } catch (e) {}
+      document.body.removeChild(ta);
+    }
   });
 
   /* ── Reset notes modal ────────────────────────────────────────── */
