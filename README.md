@@ -201,3 +201,9 @@ Here is my data:
 Paste your data after the last line and the AI will return a CSV you can save as a `.csv` file and import using the **Calendar** button on the grid.
 
 **Works well for:** project milestone lists, reading logs, travel history, concert or event lists, work anniversaries, Notion database exports, Airtable exports, Apple Notes lists, and anything else with dates attached.
+
+---
+
+### Sample dataset
+
+[`millennium_timeline-events_clean.csv`](./millennium_timeline-events_clean.csv) — a 1,000-year dataset (~3,300 events from 1027 to the present) included in this repo as a ready-to-import example. Load it via the **Calendar** button to see the grid populated across a full millennium. Pairs well with the **⟳ Reset to defaults** button (sets the grid to 100 years from 2000) as a starting point — or set the span to 1000 years from 1027 to display the full range.
