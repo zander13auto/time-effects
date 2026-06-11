@@ -622,7 +622,7 @@ Here is my data:
   /* ── Dynamic title ───────────────────────────────────────────── */
   function getTitle(y) {
     var tail = ', <em>one week at a time.</em>';
-    if (y === 999) return 'A millennia' + tail;
+    if (y >= 990 && y <= 1010) return 'A millennia, <em>one week at a time.</em>';
     if (y % 100 === 0) {
       var c = y / 100;
       return (c === 1 ? 'A century' : c + ' centuries') + tail;
